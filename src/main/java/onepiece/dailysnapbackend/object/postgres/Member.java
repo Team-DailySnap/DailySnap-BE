@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Entity
 @Getter
@@ -31,5 +32,13 @@ public class Member {
 
   @Column(unique = true, nullable = false)
   private String nickname;
+
+  @Column(nullable = false)
+  private String role; // RoleType Enum 사용
+
+  // 비밀번호 해싱하는 메서드 추가
+  public void encodePassword(BCryptPasswordEncoder passwordEncoder) {
+    this.password = passwordEncoder.encode(this.password);
+  }
 }
 
