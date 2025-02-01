@@ -1,7 +1,6 @@
 package onepiece.dailysnapbackend.util.filter;
 
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -14,9 +13,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-public class LoginFilter extends OncePerRequestFilter {
+public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
   private final AuthenticationManager authenticationManager;
   private final JwtUtil jwtUtil;
@@ -24,48 +23,35 @@ public class LoginFilter extends OncePerRequestFilter {
   public LoginFilter(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
     this.authenticationManager = authenticationManager;
     this.jwtUtil = jwtUtil;
+    setFilterProcessesUrl("/auth/login");
   }
 
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-      throws ServletException, IOException {
+  public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+    String username = obtainUsername(request);
+    String password = obtainPassword(request);
 
-    // 요청에서 username과 password 추출
-    String username = request.getParameter("username");
-    String password = request.getParameter("password");
+    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password, null);
+    return authenticationManager.authenticate(authToken);
+  }
 
-    if (username == null || password == null) {
-      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-      response.getWriter().write("Username and Password are required");
-      return;
-    }
-
-    // 사용자 인증 시도
-    Authentication authentication;
-    try {
-      authentication = authenticationManager.authenticate(
-          new UsernamePasswordAuthenticationToken(username, password)
-      );
-    } catch (AuthenticationException e) {
-      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      response.getWriter().write("Authentication failed");
-      return;
-    }
-
-    // 인증 성공 시 UserDetails 객체 가져오기
+  @Override
+  protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) {
     CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-
-    String authenticatedUsername = customUserDetails.getUsername();
+    String username = customUserDetails.getUsername();
 
     Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
     Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
     GrantedAuthority authority = iterator.next();
     String role = authority.getAuthority();
 
-    // JWT 토큰 생성 및 헤더에 추가
-    String token = jwtUtil.createJwt(authenticatedUsername, role); // 1시간 유효
+    String token = jwtUtil.createJwt(username, role);
 
     response.addHeader("Authorization", "Bearer " + token);
-    response.getWriter().write("Login successful. Token: " + token);
+  }
+
+  @Override
+  protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException {
+    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
   }
 }

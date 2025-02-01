@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -32,11 +33,12 @@ public class SecurityConfig {
     http
         .csrf(csrf -> csrf.disable()) // CSRF 비활성화
         .authorizeHttpRequests(auth ->
-            auth.requestMatchers("/auth/login", "/auth/register").permitAll() // 로그인 경로는 인증 없이 허용
-                .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
+            auth.requestMatchers("/auth/register", "/auth/login").permitAll() // 회원가입, 로그인은 인증 없이 허용
+                .anyRequest().authenticated() // 그 외 요청은 인증 필요
         )
-        .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class) // JwtFilter를 UsernamePasswordAuthenticationFilter 앞에 배치
-        .addFilterBefore(new LoginFilter(authenticationManager(), jwtUtil), JwtFilter.class); // LoginFilter를 JwtFilter 앞에 배치
+        .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(new LoginFilter(authenticationManager(), jwtUtil), UsernamePasswordAuthenticationFilter.class)
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
     return http.build();
   }
