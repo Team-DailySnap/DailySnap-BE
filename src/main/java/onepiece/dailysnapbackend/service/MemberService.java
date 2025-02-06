@@ -27,7 +27,7 @@ public class MemberService {
     // 아이디 중복 체크
     if (memberRepository.existsByUsername(member.getUsername()).isPresent()) {
       log.error("이미 가입된 회원입니다: {}", member.getUsername());
-      throw new CustomException(ErrorCode.DUPLICATE_USERNAME);
+      throw new CustomException(ErrorCode.UPLICATE_USERNAME);
     }
 
     memberRepository.save(Member.builder()
