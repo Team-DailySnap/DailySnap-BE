@@ -2,15 +2,18 @@ package onepiece.dailysnapbackend.object.postgres;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import onepiece.dailysnapbackend.object.constants.Role;
 
 @Entity
 @Getter
@@ -21,24 +24,25 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 public class Member {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long memberId;
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  @Column(columnDefinition = "uuid DEFAULT uuid_generate_v4()", updatable = false, nullable = false)
+  private UUID memberId;
 
+
+  // 이메일
   @Column(unique = true, nullable = false)
   private String username;
 
+  // 비밀번호
   @Column(nullable = false)
   private String password;
 
+  // 닉네임
   @Column(unique = true, nullable = false)
   private String nickname;
 
-  @Column(nullable = false)
-  private String role; // RoleType Enum 사용
-
-  // 비밀번호 해싱하는 메서드 추가
-  public void encodePassword(BCryptPasswordEncoder passwordEncoder) {
-    this.password = passwordEncoder.encode(this.password);
-  }
+  // 권한 (유저, 관리자)
+  @Enumerated(EnumType.STRING)
+  private Role role;
 }
 

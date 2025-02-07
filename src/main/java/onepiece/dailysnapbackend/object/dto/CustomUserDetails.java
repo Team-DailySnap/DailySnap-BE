@@ -1,25 +1,32 @@
 package onepiece.dailysnapbackend.object.dto;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import lombok.Getter;
 import onepiece.dailysnapbackend.object.postgres.Member;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
+@Getter
 public class CustomUserDetails implements UserDetails {
 
   private final Member member;
+  private Map<String, Object> attributes;
 
   public CustomUserDetails(Member member) {
     this.member = member;
   }
 
+  public CustomUserDetails(Member member, Map<String, Object> attributes) {
+    this.member = member;
+    this.attributes = attributes;
+  }
+
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    Collection<GrantedAuthority> authorities = new ArrayList<>();
-    authorities.add(member::getRole);
-    return authorities;
+    return Collections.singletonList(new SimpleGrantedAuthority(member.getRole().name()));
   }
 
   @Override
@@ -29,27 +36,16 @@ public class CustomUserDetails implements UserDetails {
 
   @Override
   public String getUsername() {
-    return member.getUsername();
-  }
-
-  @Override
-  public boolean isAccountNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isAccountNonLocked() {
-    return true;
+    return member.getUsername(); // 회원 email(username) 반환
   }
 
   @Override
   public boolean isCredentialsNonExpired() {
-    return true;
+    return true; // 인증 정보 항상 유효
   }
 
-  @Override
-  public boolean isEnabled() {
-    return true;
+
+  public String getMemberId() {
+    return member.getMemberId().toString(); // 회원의 memberId (UUID)를 string 으로 반환
   }
 }
-

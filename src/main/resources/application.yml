@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev
+    active: prod
   config:
     import:
   jpa:
@@ -23,9 +23,7 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
-  jwt:
-    secret: vmfhaltmskdlstkfkdgodyroqkfwkdbalroqkfwkdbalaaaaaaaaaaaaaaaabbbbb
-    expiration: 360000
+
 
 springdoc:
   default-consumes-media-type: application/json;charset=UTF-8

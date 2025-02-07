@@ -1,53 +1,122 @@
 package onepiece.dailysnapbackend.util.config;
 
+
+import java.util.Arrays;
+import java.util.Collections;
+import lombok.RequiredArgsConstructor;
+import onepiece.dailysnapbackend.repository.MemberRepository;
+import onepiece.dailysnapbackend.service.CustomUserDetailsService;
 import onepiece.dailysnapbackend.util.JwtUtil;
-import onepiece.dailysnapbackend.util.filter.JwtFilter;
 import onepiece.dailysnapbackend.util.filter.LoginFilter;
+import onepiece.dailysnapbackend.util.filter.TokenAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
   private final JwtUtil jwtUtil;
+  private final CustomUserDetailsService customUserDetailsService;
   private final AuthenticationConfiguration authenticationConfiguration;
+  private final RedisTemplate<String, Object> redisTemplate;
+  private final MemberRepository memberRepository;
 
-  public SecurityConfig(JwtUtil jwtUtil, AuthenticationConfiguration authenticationConfiguration) {
-    this.jwtUtil = jwtUtil;
-    this.authenticationConfiguration = authenticationConfiguration;
-  }
+  /**
+   * 허용된 CORS Origin 목록
+   */
+  private static final String[] ALLOWED_ORIGINS = {
+      "http://34.22.77.73:8087", // 메인 API 서버
+      "http://34.22.77.73:8088", // 테스트 API 서버
+      // TODO: 메인 웹 서버 추가
+      "http://localhost:8080", // 로컬 API 서버
+      "http://localhost:3000" // 로컬 웹 서버
+  };
 
+  /**
+   * Security Filter Chain 설정
+   */
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    // JWT => 우리는 우리가 발급한 토큰으로 접근하는 사용자만 서비스를 허락주겠다.
-    // 최초에는 당연히 토큰 X => 풀어줘야함 => permitAll
-
-    // JWT 발급 -> HTTPS Secure Cookie ->
-    http
-        .csrf(csrf -> csrf.disable()) // CSRF 비활성화
-        .authorizeHttpRequests(auth ->
-            auth.requestMatchers("/auth/register", "/auth/login").permitAll() // 회원가입, 로그인은 인증 없이 허용
-                .anyRequest().authenticated() // 그 외 요청은 인증 필요
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    return http
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        .csrf(AbstractHttpConfigurer::disable)
+        .httpBasic(AbstractHttpConfigurer::disable)  // ✅ 수정된 부분
+        .formLogin(AbstractHttpConfigurer::disable)  // ✅ 수정된 부분
+        .authorizeHttpRequests((authorize) -> authorize
+            .requestMatchers(SecurityUrls.AUTH_WHITELIST.toArray(new String[0]))
+            .permitAll() // AUTH_WHITELIST에 등록된 URL은 인증 허용
+            .requestMatchers(SecurityUrls.ADMIN_PATHS.toArray(new String[0]))
+            .hasRole("ADMIN") // ADMIN_PATHS에 등록된 URL은 관리자만 접근가능
+            .anyRequest().authenticated()
         )
-        .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
-        .addFilterBefore(new LoginFilter(authenticationManager(), jwtUtil), UsernamePasswordAuthenticationFilter.class)
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-    return http.build();
+        .logout(logout -> logout
+            .logoutUrl("/logout") // "/logout" 경로로 접근 시 로그아웃
+            .logoutSuccessUrl("/login") // 로그아웃 성공 후 로그인 창 이동
+            .invalidateHttpSession(true)
+        )
+        .sessionManagement(session ->
+            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        )
+        .addFilterBefore(
+            new TokenAuthenticationFilter(jwtUtil, customUserDetailsService),
+            UsernamePasswordAuthenticationFilter.class
+        )
+        .addFilterAt(
+            new LoginFilter(jwtUtil,
+                authenticationManager(authenticationConfiguration),
+                redisTemplate,
+                memberRepository),
+            UsernamePasswordAuthenticationFilter.class
+        )
+        .build();
   }
 
+  /**
+   * 인증 메니저 설정
+   */
   @Bean
-  public AuthenticationManager authenticationManager() throws Exception {
+  public AuthenticationManager authenticationManager(
+      AuthenticationConfiguration authenticationConfiguration)
+      throws Exception {
+
     return authenticationConfiguration.getAuthenticationManager();
   }
 
+  /**
+   * CORS 설정 소스 빈
+   */
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedOriginPatterns(Arrays.asList(ALLOWED_ORIGINS));
+    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+    configuration.setAllowCredentials(true);
+    configuration.setAllowedHeaders(Collections.singletonList("*"));
+    configuration.setMaxAge(3600L);
+
+    UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
+    urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", configuration);
+    return urlBasedCorsConfigurationSource;
+  }
+
+  /**
+   * 비밀번호 인코더 빈 (BCrypt)
+   */
   @Bean
   public BCryptPasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
