@@ -1,13 +1,16 @@
 package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.dto.ApiResponse;
+import onepiece.dailysnapbackend.object.dto.SignUpRequest;
 import onepiece.dailysnapbackend.service.MemberService;
+import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -24,10 +27,8 @@ public class AuthController implements AuthControllerDocs {
 
   @Override
   @PostMapping("/signup")
-  public ResponseEntity<ApiResponse<Void>> signUp(
-      @RequestParam String username,
-      @RequestParam String password,
-      @RequestParam String nickname) {
-    return ResponseEntity.ok(memberService.signUp(username, password, nickname));
+  @LogMonitoringInvocation
+  public ResponseEntity<ApiResponse<Void>> signUp(@Valid @RequestBody SignUpRequest request) {
+    return ResponseEntity.ok(memberService.signUp(request));
   }
 }

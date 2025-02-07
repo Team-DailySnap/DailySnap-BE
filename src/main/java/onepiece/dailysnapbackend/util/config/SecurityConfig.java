@@ -5,13 +5,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.repository.MemberRepository;
+import onepiece.dailysnapbackend.repository.RefreshTokenRepository;
 import onepiece.dailysnapbackend.service.CustomUserDetailsService;
 import onepiece.dailysnapbackend.util.JwtUtil;
 import onepiece.dailysnapbackend.util.filter.LoginFilter;
 import onepiece.dailysnapbackend.util.filter.TokenAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,15 +33,15 @@ public class SecurityConfig {
   private final JwtUtil jwtUtil;
   private final CustomUserDetailsService customUserDetailsService;
   private final AuthenticationConfiguration authenticationConfiguration;
-  private final RedisTemplate<String, Object> redisTemplate;
   private final MemberRepository memberRepository;
+  private final RefreshTokenRepository refreshTokenRepository;
 
   /**
    * 허용된 CORS Origin 목록
    */
   private static final String[] ALLOWED_ORIGINS = {
-      "http://34.22.77.73:8087", // 메인 API 서버
-      "http://34.22.77.73:8088", // 테스트 API 서버
+      "http://34.64.71.203:8087", // 메인 API 서버
+      "http://34.64.71.203:8088", // 테스트 API 서버
       // TODO: 메인 웹 서버 추가
       "http://localhost:8080", // 로컬 API 서버
       "http://localhost:3000" // 로컬 웹 서버
@@ -79,8 +79,8 @@ public class SecurityConfig {
         .addFilterAt(
             new LoginFilter(jwtUtil,
                 authenticationManager(authenticationConfiguration),
-                redisTemplate,
-                memberRepository),
+                memberRepository,
+                refreshTokenRepository),
             UsernamePasswordAuthenticationFilter.class
         )
         .build();

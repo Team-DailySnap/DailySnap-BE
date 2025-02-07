@@ -5,16 +5,15 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
-import onepiece.dailysnapbackend.object.postgres.Member;
+import onepiece.dailysnapbackend.object.mongo.RefreshToken;
 import onepiece.dailysnapbackend.repository.MemberRepository;
+import onepiece.dailysnapbackend.repository.RefreshTokenRepository;
 import onepiece.dailysnapbackend.util.JwtUtil;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,8 +26,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
   private final JwtUtil jwtUtil;
   private final AuthenticationManager authenticationManager;
-  private final RedisTemplate<String, Object> redisTemplate;
   private final MemberRepository memberRepository;
+  private final RefreshTokenRepository refreshTokenRepository;
 
   @Override
   public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) {
@@ -53,22 +52,22 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     // CustomUserDetails
     CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-    Member member = customUserDetails.getMember();
-    String accessToken = jwtUtil.createAccessToken(customUserDetails);
+    Long memberId = customUserDetails.getMember().getMemberId();    String accessToken = jwtUtil.createAccessToken(customUserDetails);
     String refreshToken = jwtUtil.createRefreshToken(customUserDetails);
 
-    log.debug("로그인 성공: 엑세스 토큰 및 리프레시 토큰 생성");
-    log.debug("accessToken = {}", accessToken);
-    log.debug("refreshToken = {}", refreshToken);
+    log.info("로그인 성공: Access Token 및 Refresh Token 생성 완료");
+    log.info("accessToken = {}", accessToken);
+    log.info("refreshToken = {}", refreshToken);
 
-    // RefreshToken을 Redisd에 저장 (key: RT:memberId)
-    redisTemplate.opsForValue().set(
-        "RT:" + customUserDetails.getMemberId(),
-        refreshToken,
-        jwtUtil.getRefreshExpirationTime(),
-        TimeUnit.MILLISECONDS
+
+    refreshTokenRepository.deleteByMemberId(memberId);
+    refreshTokenRepository.save(
+        RefreshToken.builder()
+            .refreshTokenId(memberId)
+            .token(refreshToken)
+            .memberId(memberId)
+            .build()
     );
-
     // 헤더에 accessToken 추가
     response.setHeader("Authorization", "Bearer " + accessToken);
 
@@ -80,7 +79,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     cookie.setMaxAge((int) (jwtUtil.getRefreshExpirationTime() / 1000)); // 쿠키 maxAge는 초 단위 이므로, 밀리초를 1000으로 나눔
     response.addCookie(cookie);
 
-    memberRepository.save(member);
+    memberRepository.save(customUserDetails.getMember());
   }
 
   // 로그인 실패

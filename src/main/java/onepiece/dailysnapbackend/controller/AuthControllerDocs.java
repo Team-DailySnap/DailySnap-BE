@@ -1,10 +1,9 @@
 package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import onepiece.dailysnapbackend.object.dto.ApiResponse;
+import onepiece.dailysnapbackend.object.dto.SignUpRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestParam;
 
 public interface AuthControllerDocs {
 
@@ -29,9 +28,5 @@ public interface AuthControllerDocs {
 
                     """
   )
-  ResponseEntity<ApiResponse<Void>> signUp(
-      @Parameter(description = "사용자 이메일", required = true) @RequestParam String username,
-      @Parameter(description = "사용자 비밀번호", required = true) @RequestParam String password,
-      @Parameter(description = "사용자 닉네임", required = true) @RequestParam String nickname
-  );
+  ResponseEntity<ApiResponse<Void>> signUp(SignUpRequest request);
 }

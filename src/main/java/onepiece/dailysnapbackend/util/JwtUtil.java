@@ -14,9 +14,9 @@ import java.util.Date;
 import javax.crypto.SecretKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
 import onepiece.dailysnapbackend.service.CustomUserDetailsService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -121,6 +121,7 @@ public class JwtUtil {
   private String createToken(String category, CustomUserDetails customUserDetails, Long expiredAt) {
 
     return Jwts.builder()
+        .subject(customUserDetails.getUsername())
         .claim("category", category)
         .claim("username", customUserDetails.getUsername())
         .claim("role", customUserDetails.getMember().getRole())
