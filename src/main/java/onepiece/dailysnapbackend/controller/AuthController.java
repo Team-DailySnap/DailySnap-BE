@@ -16,13 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Tag(
-    name = "회원 관련 API",
-    description = ""
+    name = "인증 관련 API",
+    description = "회원 인증 관련 API 제공"
 )
 public class AuthController {
 
   private final MemberService memberService;
 
+  // 회원가입
   @PostMapping("/signup")
   public ResponseEntity<ApiResponse<Void>> signUp(@Valid @RequestBody SignUpRequest request) {
     return ResponseEntity.ok(memberService.signUp(request));
