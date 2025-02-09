@@ -1,4 +1,4 @@
-package onepiece.dailysnapbackend.repository;
+package onepiece.dailysnapbackend.repository.mongo;
 
 import onepiece.dailysnapbackend.object.mongo.RefreshToken;
 import java.util.Optional;

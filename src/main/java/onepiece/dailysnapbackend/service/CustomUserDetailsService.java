@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
 import onepiece.dailysnapbackend.object.postgres.Member;
-import onepiece.dailysnapbackend.repository.MemberRepository;
+import onepiece.dailysnapbackend.repository.postgres.MemberRepository;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
 import org.springframework.security.core.userdetails.UserDetailsService;

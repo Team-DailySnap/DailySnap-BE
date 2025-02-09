@@ -8,15 +8,14 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
-import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
 import onepiece.dailysnapbackend.service.CustomUserDetailsService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -30,11 +29,6 @@ public class JwtUtil {
 
   @Value("${jwt.secret-key}")
   private String secretKey;
-
-  @PostConstruct
-  public void checkSecretKey() {
-    log.info("Loaded JWT Secret Key: {}", secretKey);
-  }
 
   @Value("${jwt.access-exp-time}")
   private Long accessTokenExpTime; // AccessToken 만료 시간
@@ -96,7 +90,7 @@ public class JwtUtil {
    * @return
    */
   public String createAccessToken(CustomUserDetails customUserDetails) {
-    log.debug("엑세스 토큰 생성 중: 회원: {}", customUserDetails.getUsername());
+    log.info("엑세스 토큰 생성 중: 회원: {}", customUserDetails.getUsername());
     return createToken(ACCESS_CATEGORY, customUserDetails, accessTokenExpTime);
   }
 
@@ -107,7 +101,7 @@ public class JwtUtil {
    * @return
    */
   public String createRefreshToken(CustomUserDetails customUserDetails) {
-    log.debug("리프래시 토큰 생성 중: 회원: {}", customUserDetails.getUsername());
+    log.info("리프래시 토큰 생성 중: 회원: {}", customUserDetails.getUsername());
     return createToken(REFRESH_CATEGORY, customUserDetails, refreshTokenExpTime);
   }
 
@@ -218,6 +212,7 @@ public class JwtUtil {
   public Authentication getAuthentication(String token) {
     Claims claims = getClaims(token);
     String username = claims.getSubject();
+    log.info("JWT에서 인증정보 파싱: username={}", username);
     CustomUserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
     return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
   }

@@ -12,6 +12,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import onepiece.dailysnapbackend.object.constants.AccountStatus;
 import onepiece.dailysnapbackend.object.constants.Role;
 
 @Entity
@@ -20,12 +21,11 @@ import onepiece.dailysnapbackend.object.constants.Role;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Member {
+public class Member extends BasePostgresEntity{
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long memberId;
-
 
   // 이메일
   @Column(unique = true, nullable = false)
@@ -42,5 +42,10 @@ public class Member {
   // 권한 (유저, 관리자)
   @Enumerated(EnumType.STRING)
   private Role role;
+
+  // 계정 상태 (활성, 삭제)
+  @Enumerated(EnumType.STRING)
+  @Builder.Default
+  private AccountStatus accountStatus = AccountStatus.ACTIVE_ACCOUNT;
 }
 

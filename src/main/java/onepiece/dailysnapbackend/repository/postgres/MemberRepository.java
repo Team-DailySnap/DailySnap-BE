@@ -1,4 +1,4 @@
-package onepiece.dailysnapbackend.repository;
+package onepiece.dailysnapbackend.repository.postgres;
 
 import java.util.Optional;
 import onepiece.dailysnapbackend.object.postgres.Member;

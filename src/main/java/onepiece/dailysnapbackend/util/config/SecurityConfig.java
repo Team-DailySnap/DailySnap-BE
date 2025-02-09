@@ -4,8 +4,7 @@ package onepiece.dailysnapbackend.util.config;
 import java.util.Arrays;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
-import onepiece.dailysnapbackend.repository.MemberRepository;
-import onepiece.dailysnapbackend.repository.RefreshTokenRepository;
+import onepiece.dailysnapbackend.repository.mongo.RefreshTokenRepository;
 import onepiece.dailysnapbackend.service.CustomUserDetailsService;
 import onepiece.dailysnapbackend.util.JwtUtil;
 import onepiece.dailysnapbackend.util.filter.LoginFilter;
@@ -33,7 +32,6 @@ public class SecurityConfig {
   private final JwtUtil jwtUtil;
   private final CustomUserDetailsService customUserDetailsService;
   private final AuthenticationConfiguration authenticationConfiguration;
-  private final MemberRepository memberRepository;
   private final RefreshTokenRepository refreshTokenRepository;
 
   /**
@@ -79,7 +77,6 @@ public class SecurityConfig {
         .addFilterAt(
             new LoginFilter(jwtUtil,
                 authenticationManager(authenticationConfiguration),
-                memberRepository,
                 refreshTokenRepository),
             UsernamePasswordAuthenticationFilter.class
         )
