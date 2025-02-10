@@ -3,7 +3,8 @@ package onepiece.dailysnapbackend.service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import onepiece.dailysnapbackend.object.dto.ApiResponse;
+import onepiece.dailysnapbackend.object.constants.AccountStatus;
+import onepiece.dailysnapbackend.object.constants.Role;
 import onepiece.dailysnapbackend.object.dto.SignUpRequest;
 import onepiece.dailysnapbackend.object.postgres.Member;
 import onepiece.dailysnapbackend.repository.postgres.MemberRepository;
@@ -22,22 +23,22 @@ public class MemberService {
 
   // 회원가입
   @Transactional
-  public ApiResponse<Void> signUp(SignUpRequest member) {
+  public void signUp(SignUpRequest request) {
 
-    // 아이디 중복 체크
-    if (memberRepository.existsByUsername(member.getUsername()).isPresent()) {
-      log.error("이미 가입된 회원입니다: {}", member.getUsername());
-      throw new CustomException(ErrorCode.UPLICATE_USERNAME);
+    // 이메일 중복 체크
+    if (memberRepository.existsByUsername(request.getUsername())) {
+      log.error("이미 가입된 이메일입니다: {}", request.getUsername());
+      throw new CustomException(ErrorCode.DUPLICATE_USERNAME);
     }
 
     memberRepository.save(Member.builder()
-        .username(member.getUsername())
-        .password(bCryptPasswordEncoder.encode(member.getPassword()))
-        .nickname(member.getNickname())
+        .username(request.getUsername())
+        .password(bCryptPasswordEncoder.encode(request.getPassword()))
+        .nickname(request.getNickname())
+        .role(Role.ROLE_USER)
+        .accountStatus(AccountStatus.ACTIVE_ACCOUNT)
         .build()
     );
-    log.info("회원가입 성공");
-
-    return ApiResponse.success(null);
+    log.info("회원가입 성공: username={}", request.getUsername());
   }
 }
