@@ -22,8 +22,8 @@ import org.springframework.context.annotation.Configuration;
         version = "1.0v"
     ),
     servers = {
-        @Server(url = "https://34.64.71.203:8087", description = "메인 서버"),
-        @Server(url = "https://34.64.71.203:8088", description = "테스트 서버"),
+        @Server(url = "http://34.64.71.203:8087", description = "메인 서버"),
+        @Server(url = "http://34.64.71.203:8088", description = "테스트 서버"),
         @Server(url = "http://localhost:8080", description = "로컬 서버")
     }
 )
