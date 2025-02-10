@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import onepiece.dailysnapbackend.object.dto.ApiResponse;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
 import onepiece.dailysnapbackend.object.mongo.RefreshToken;
 import onepiece.dailysnapbackend.object.postgres.Member;
@@ -17,6 +16,7 @@ import onepiece.dailysnapbackend.repository.mongo.RefreshTokenRepository;
 import onepiece.dailysnapbackend.util.JwtUtil;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -76,7 +76,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
-    new ObjectMapper().writeValue(response.getWriter(), ApiResponse.success(tokenMap));
+    new ObjectMapper().writeValue(response.getWriter(), ResponseEntity.ok(tokenMap));
   }
 
   // 로그인 실패
