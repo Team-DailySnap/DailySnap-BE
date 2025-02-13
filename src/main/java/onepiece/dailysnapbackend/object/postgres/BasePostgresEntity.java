@@ -33,7 +33,13 @@ public abstract class BasePostgresEntity {
   @Column(nullable = false)
   private LocalDateTime updatedDate;
 
+  // 수정 여부
+  @Builder.Default
+  @Column(nullable = false)
+  private boolean isEdited = false;
+
   // 삭제여부
   @Builder.Default
+  @Column(nullable = false)
   private boolean isDeleted = false;
 }
