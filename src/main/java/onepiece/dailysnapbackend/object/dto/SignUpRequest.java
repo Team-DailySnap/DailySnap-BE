@@ -3,6 +3,7 @@ package onepiece.dailysnapbackend.object.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,4 +30,8 @@ public class SignUpRequest {
   @Schema(defaultValue = "nickname123")
   private String nickname; // 닉네임
 
+  @NotBlank(message = "생년월일을 입력하세요")
+  @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "생년월일은 'YYYY-MM-DD' 형식이어야 합니다.")
+  @Schema(defaultValue = "2000-10-30")
+  private String birth; // 생년월일 (YYYY-MM-DD)
 }
