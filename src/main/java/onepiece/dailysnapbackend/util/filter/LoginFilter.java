@@ -65,7 +65,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     // Refresh Token 저장
     refreshTokenRepository.save(RefreshToken.builder()
         .token(refreshToken)
-        .memberId(member.getMemberId())
+        .memberId(customUserDetails.getMemberId())
         .expiryDate(jwtUtil.getRefreshExpiryDate())
         .build());
 

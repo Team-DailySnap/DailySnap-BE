@@ -21,7 +21,7 @@ public class RefreshToken {
 
   @Indexed
   @NotNull
-  private Long memberId;
+  private String memberId;
 
   @NotNull
   private LocalDateTime expiryDate;

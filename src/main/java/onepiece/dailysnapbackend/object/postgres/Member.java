@@ -14,6 +14,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import onepiece.dailysnapbackend.object.constants.AccountStatus;
 import onepiece.dailysnapbackend.object.constants.Role;
 
 @Entity
@@ -52,6 +53,10 @@ public class Member extends BasePostgresEntity{
   // 권한 (유저, 관리자)
   @Enumerated(EnumType.STRING)
   private Role role;
+
+  @Enumerated(EnumType.STRING)
+  @Builder.Default
+  private AccountStatus accountStatus = AccountStatus.ACTIVE_ACCOUNT;
 
   // 일일 최대 업로드 수
   @Column(nullable = false)
