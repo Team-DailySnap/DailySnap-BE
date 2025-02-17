@@ -26,7 +26,7 @@
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(columnDefinition = "uuid DEFAULT uuid_generate_v4()", updatable = false, nullable = false)
-    private UUID postId;
+    private UUID photoId;
 
     // 작성자 회원
     @ManyToOne(fetch= FetchType.LAZY)

@@ -3,10 +3,12 @@ package onepiece.dailysnapbackend.object.postgres;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import java.util.UUID;
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,7 +25,9 @@ public class MemberInfo extends BasePostgresEntity{
 
   // 회원 ID
   @Id
-  private UUID memberId;
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  @Column(columnDefinition = "uuid DEFAULT uuid_generate_v4()", updatable = false, nullable = false)
+  private UUID memberInfoId;
 
   // 회원 엔티티와의 매핑
   @OneToOne(fetch = FetchType.LAZY)

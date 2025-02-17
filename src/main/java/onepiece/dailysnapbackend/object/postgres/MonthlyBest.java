@@ -21,7 +21,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MonthlyBest {
+public class MonthlyBest extends BasePostgresEntity{
 
   // 월간 우수작 ID
   @Id

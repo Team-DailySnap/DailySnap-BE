@@ -7,7 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import java.time.LocalDate;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,7 +20,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DailyBest {
+public class DailyBest extends BasePostgresEntity{
 
   // 일간 우수작 ID
   @Id
@@ -33,7 +32,4 @@ public class DailyBest {
   @ManyToOne(fetch = FetchType.LAZY)
   private Keyword keyword;
 
-  // 집계 날짜
-  @Column(nullable = false)
-  private LocalDate date;
 }
