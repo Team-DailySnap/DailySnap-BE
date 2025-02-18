@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,19 +21,23 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Follow extends BasePostgresEntity{
+public class WeeklyBest extends BasePostgresEntity{
 
-  // 팔로우 ID
+  // 주간 우수작 ID
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(columnDefinition = "uuid DEFAULT uuid_generate_v4()", updatable = false, nullable = false)
-  private UUID followId;
+  private UUID weeklyBestId;
 
-  // 팔로잉 회원(팔로우를 하는 회원)
-  @ManyToOne(fetch= FetchType.LAZY)
-  private Member following;
+  // 일간 우수작
+  @ManyToOne(fetch = FetchType.LAZY)
+  private DailyBest dailyBest;
 
-  // 팔로워 회원(팔로우를 받는 회원)
-  @ManyToOne(fetch=FetchType.LAZY)
-  private Member follower;
+  // 해당 주의 시작 날짜
+  @Column(nullable = false)
+  private LocalDate weekStartDate;
+
+  // 해당 주의 종료 날짜
+  @Column(nullable = false)
+  private LocalDate weekEndDate;
 }
