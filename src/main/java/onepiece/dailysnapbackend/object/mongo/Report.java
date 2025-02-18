@@ -19,17 +19,17 @@ public class Report {
 
   // 신고 ID
   @Id
-  @Builder.Default
-  private UUID reportId = UUID.randomUUID();
+  private String reportId;
 
   // 신고자 회원 ID
+  @Indexed
   private UUID reporterId;
 
   // 신고된 사진 게시물 ID
+  @Indexed
   private UUID reportedPhotoId;
 
   // 신고 카테고리
-  @Indexed
   private ReportCategory reportCategory;
 
   // 신고 내용

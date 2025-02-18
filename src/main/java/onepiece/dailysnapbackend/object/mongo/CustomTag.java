@@ -18,13 +18,12 @@ public class CustomTag extends BaseMongoEntity {
 
   // 커스텀 태그 ID
   @Id
-  @Builder.Default
-  private UUID customTagId = UUID.randomUUID();
+  private String customTagId;
 
   // 연결된 사진 게시물 ID
+  @Indexed
   private UUID photoId;
 
   // 태그 내용
-  @Indexed
   private String customTag;
 }
