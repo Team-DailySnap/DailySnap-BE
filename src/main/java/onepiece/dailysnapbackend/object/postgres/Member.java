@@ -1,6 +1,5 @@
 package onepiece.dailysnapbackend.object.postgres;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -8,9 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,9 +24,11 @@ import onepiece.dailysnapbackend.object.constants.Role;
 @Builder
 public class Member extends BasePostgresEntity{
 
+  // 회원 ID
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long memberId;
+  @Column(columnDefinition = "uuid DEFAULT uuid_generate_v4()", updatable = false, nullable = false)
+  private UUID memberId;
 
   // 이메일
   @Column(unique = true, nullable = false)
@@ -54,25 +53,16 @@ public class Member extends BasePostgresEntity{
   @Enumerated(EnumType.STRING)
   private Role role;
 
-  // 계정 상태 (활성, 삭제)
   @Enumerated(EnumType.STRING)
   @Builder.Default
   private AccountStatus accountStatus = AccountStatus.ACTIVE_ACCOUNT;
 
-  // 총 업로드 수
-  @Builder.Default
-  private int uploadCount=0;
+  // 일일 최대 업로드 수
+  @Column(nullable = false)
+  private Integer dailyUploadCount;
 
-  // 총 좋아요 수
-  @Builder.Default
-  private int likeCount=0;
-
-  // 내가 팔로우한 회원 목록
-  @OneToMany(mappedBy = "following", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<Follow> following = new ArrayList<>();
-
-  // 나를 팔로우한 회원 목록
-  @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<Follow> followers = new ArrayList<>();
-}
+  // 과금 여부
+  @Column(nullable = false)
+  private boolean isPaid;
+ }
 

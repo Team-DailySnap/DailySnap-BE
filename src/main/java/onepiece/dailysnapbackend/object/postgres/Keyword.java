@@ -1,17 +1,13 @@
 package onepiece.dailysnapbackend.object.postgres;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,11 +20,13 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DailyKeyword extends BasePostgresEntity{
+public class Keyword extends BasePostgresEntity{
 
+  // 키워드 ID
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
-  private Long dailyKeywordId;
+  @Column(columnDefinition = "uuid DEFAULT uuid_generate_v4()", updatable = false, nullable = false)
+  private UUID keywordId;
 
   // 키워드 이름
   @Column(nullable = false, unique = true)
@@ -38,12 +36,7 @@ public class DailyKeyword extends BasePostgresEntity{
   @Column(nullable = false)
   private LocalDate date;
 
-  // 우수작 게시물 Id
-  @OneToOne
-  @JoinColumn(name = "best_photo_post_id")
-  private PhotoPost bestPhotoPost;
-
-  // 사진 게시물 리스트 (1:N 관계)
-  @OneToMany(mappedBy = "dailyKeyword", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<PhotoPost> photoPosts = new ArrayList<>();
+  // 만료일
+  @Column(nullable = false)
+  private LocalDateTime expiredDate;
 }

@@ -63,4 +63,7 @@ public class CustomUserDetails implements UserDetails {
     return member.getAccountStatus() != AccountStatus.DELETE_ACCOUNT;
   }
 
+  public String getMemberId() {
+    return member.getMemberId().toString(); // 회원의 memberId (UUID)를 string 으로 반환
+  }
 }
