@@ -7,7 +7,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import java.time.LocalDate;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,7 +44,7 @@ public class Member extends BasePostgresEntity{
 
   // 생년월일
   @Column(nullable = false)
-  private LocalDate birth;
+  private String birth;
 
   // 프로필 사진 URL
   private String profileImageUrl;
