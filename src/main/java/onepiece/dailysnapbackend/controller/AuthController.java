@@ -43,6 +43,7 @@ public class AuthController implements AuthControllerDocs{
   }
 
   // 액세스 토큰 재발급
+  @Override
   @PostMapping("/api/auth/reissue")
   @LogMonitoringInvocation
   public ResponseEntity<Void> reissue(HttpServletRequest request, HttpServletResponse response) {
