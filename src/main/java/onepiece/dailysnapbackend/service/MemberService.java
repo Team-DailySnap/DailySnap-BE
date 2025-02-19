@@ -2,7 +2,6 @@ package onepiece.dailysnapbackend.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -61,12 +60,7 @@ public class MemberService {
     String refresh = extractRefreshTokenFromRequest(request);
 
     // 만료 여부 확인
-    try {
-      jwtUtil.isExpired(refresh);
-    } catch (ExpiredJwtException e) {
-      log.error("refresh token 이 만료되었습니다.");
-      throw new CustomException(ErrorCode.EXPIRED_REFRESH_TOKEN);
-    }
+    jwtUtil.validateToken(refresh);
 
     // 토큰이 유효한지 확인 (발급 시 페이로드에 명시)
     String category = jwtUtil.getCategory(refresh);
@@ -79,9 +73,16 @@ public class MemberService {
     CustomUserDetails customUserDetails = (CustomUserDetails) jwtUtil.getAuthentication(refresh).getPrincipal();
     String newAccess = jwtUtil.createAccessToken(customUserDetails);
 
-    // 헤더에 액세스 토큰 추가
-    response.setHeader("Authorization", "Bearer " + newAccess);
-    log.info("access token 재발급 성공");
+    // JSON 응답 바디로 액세스 토큰 반환
+    response.setContentType("application/json");
+    try {
+      response.getWriter().write(String.format("{\"accessToken\": \"%s\"}", newAccess));
+    } catch (IOException e) {
+      log.error("액세스 토큰 응답 작성 중 오류 발생", e);
+      throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+
+    log.info("access token 재발급 성공: accessToken={}", newAccess);
   }
 
   // 리프레시 토큰 추출

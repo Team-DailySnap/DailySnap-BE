@@ -61,11 +61,14 @@ public interface AuthControllerDocs {
                   ```
                   
                   ### 반환값
-                  - 새로운 액세스 토큰은 **HTTP 헤더 (`Authorization`)**에 포함되어 반환됩니다.
+                  - 새로운 액세스 토큰은 **JSON 응답 바디**에 포함되어 반환됩니다.
                   
                   **반환 헤더 예시:**
                   ```
-                  Authorization: Bearer your-new-access-token
+                  json
+                  {
+                    "accessToken": "your-new-access-token"
+                  }
                   ```
                   
                   ### 유의사항
