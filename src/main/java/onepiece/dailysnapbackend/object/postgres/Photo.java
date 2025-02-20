@@ -34,7 +34,7 @@
 
     // 키워드
     @ManyToOne(fetch = FetchType.LAZY)
-    private Keyword Keyword;
+    private Keyword keyword;
 
     // 일간 우수작
     @ManyToOne(fetch = FetchType.LAZY)
