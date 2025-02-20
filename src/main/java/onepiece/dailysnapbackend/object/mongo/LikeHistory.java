@@ -22,7 +22,7 @@ public class LikeHistory {
 
   // 좋아요가 눌린 사진 게시물 ID
   @Indexed
-  private UUID photoId;
+  private UUID postId;
 
   // 좋아요를 누른 회원 ID
   @Indexed
