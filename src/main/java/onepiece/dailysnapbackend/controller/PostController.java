@@ -5,9 +5,9 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
-import onepiece.dailysnapbackend.object.dto.PhotoPostRequest;
+import onepiece.dailysnapbackend.object.dto.PostRequest;
 import onepiece.dailysnapbackend.object.postgres.Member;
-import onepiece.dailysnapbackend.service.PhotoService;
+import onepiece.dailysnapbackend.service.PostService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,22 +19,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/photo")
+@RequestMapping("/api/post")
 @Tag(
     name = "사진 게시물 관련 API",
     description = "사진 게시물 관련 API 제공"
 )
-public class PhotoController implements PhotoControllerDocs{
+public class PostController implements PostControllerDocs {
 
-  private final PhotoService photoService;
+  private final PostService postService;
 
   @Override
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @LogMonitoringInvocation
-  public ResponseEntity<UUID> uploadPhoto(
+  public ResponseEntity<UUID> uploadPost(
       @AuthenticationPrincipal CustomUserDetails userDetails,
-      @Valid @ModelAttribute PhotoPostRequest request) {
+      @Valid @ModelAttribute PostRequest request) {
     Member member = userDetails.getMember();
-    return ResponseEntity.ok(photoService.uploadPhoto(request, member));
+    return ResponseEntity.ok(postService.uploadPost(request, member));
   }
 }

@@ -14,13 +14,13 @@ import org.springframework.web.multipart.MultipartFile;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PhotoPostRequest {
+public class PostRequest {
 
   @NotNull(message = "키워드를 입력하세요")
   private UUID keywordId;
 
   @NotNull(message = "이미지를 업로드하세요")
-  private MultipartFile imageUrl;
+  private MultipartFile image;
 
   private String content;
 

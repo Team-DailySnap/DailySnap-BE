@@ -20,13 +20,13 @@
   @NoArgsConstructor
   @AllArgsConstructor
   @SuperBuilder
-  public class Photo extends BasePostgresEntity{
+  public class Post extends BasePostgresEntity{
 
     // 게시물 ID
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(columnDefinition = "uuid DEFAULT uuid_generate_v4()", updatable = false, nullable = false)
-    private UUID photoId;
+    private UUID postId;
 
     // 작성자 회원
     @ManyToOne(fetch= FetchType.LAZY)

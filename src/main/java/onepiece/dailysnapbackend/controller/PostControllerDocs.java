@@ -3,10 +3,10 @@ package onepiece.dailysnapbackend.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.UUID;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
-import onepiece.dailysnapbackend.object.dto.PhotoPostRequest;
+import onepiece.dailysnapbackend.object.dto.PostRequest;
 import org.springframework.http.ResponseEntity;
 
-public interface PhotoControllerDocs {
+public interface PostControllerDocs {
 
   @Operation(
       summary = "사진 업로드",
@@ -25,6 +25,6 @@ public interface PhotoControllerDocs {
           
           """
   )
-  ResponseEntity<UUID> uploadPhoto
-      (CustomUserDetails userDetails, PhotoPostRequest request);
+  ResponseEntity<UUID> uploadPost
+      (CustomUserDetails userDetails, PostRequest request);
 }
