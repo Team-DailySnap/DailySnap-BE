@@ -1,6 +1,7 @@
 package onepiece.dailysnapbackend.service;
 
 import jakarta.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +27,29 @@ public class S3UploadService {
   private static final List<String> ALLOWED_FILE_TYPES = List.of(
       "image/jpeg", "image/png", "image/jpg"
   );
+  private static final long MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB 제한
+
+
+  @Transactional
+  public List<String> upload(List<MultipartFile> files) {
+    List<String> uploadFileNames = new ArrayList<>();
+    for (MultipartFile file : files) {
+      uploadFileNames.add(upload(file));
+    }
+
+    return uploadFileNames;
+  }
 
   @Transactional
   public String upload(MultipartFile file) {
     String fileType = file.getContentType();
+    log.info("파일 형식: {}", fileType);
+
+    // 파일 크기 제한 검사
+    if (file.getSize() > MAX_FILE_SIZE) {
+      log.error("파일 크기가 200MB를 초과했습니다: fileSize={}", file.getSize());
+      throw new CustomException(ErrorCode.FILE_SIZE_EXCEED);
+    }
 
     // 파일 형식 제한 검사
     if (fileType == null || !ALLOWED_FILE_TYPES.contains(fileType)) {

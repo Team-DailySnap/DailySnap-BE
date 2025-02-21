@@ -1,10 +1,12 @@
 package onepiece.dailysnapbackend.service;
 
-import jakarta.transaction.Transactional;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
+import onepiece.dailysnapbackend.object.postgres.Image;
 import onepiece.dailysnapbackend.object.postgres.Keyword;
 import onepiece.dailysnapbackend.object.postgres.Member;
 import onepiece.dailysnapbackend.object.postgres.Post;
@@ -12,7 +14,12 @@ import onepiece.dailysnapbackend.repository.postgres.KeywordRepository;
 import onepiece.dailysnapbackend.repository.postgres.PostRepository;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -23,30 +30,26 @@ public class PostService {
   private final S3UploadService s3UploadService;
   private final PostRepository postRepository;
   private final KeywordRepository keywordRepository;
-  private final long MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB 제한
+  private static final int MAX_IMAGE_COUNT = 10;
 
+  // 이미지 업로드
   @Transactional
   public UUID uploadPost(PostRequest request, Member member) {
-    MultipartFile image = request.getImage();
+    List<MultipartFile> images = request.getImages();
 
-    // 파일 크기 제한 검사
-    if (image.getSize() > MAX_FILE_SIZE) {
-      log.error("파일 크기가 200MB를 초과했습니다: fileSize={}", image.getSize());
-      throw new CustomException(ErrorCode.FILE_SIZE_EXCEED);
+    // 이미지 개수 검사
+    if (images.size() > MAX_IMAGE_COUNT) {
+      throw new CustomException(ErrorCode.FILE_COUNT_EXCEED);
     }
-
-    // S3에 파일 업로드 후 URL 받기
-    String imageUrl = s3UploadService.upload(image);
 
     // 키워드 엔티티 조회
     Keyword keyword = keywordRepository.findById(request.getKeywordId())
         .orElseThrow(() -> new CustomException(ErrorCode.KEYWORD_NOT_FOUND));
 
-    // DB에 사진 정보 저장
+    // Post 엔티티 생성 및 저장
     Post post = Post.builder()
         .member(member)
         .keyword(keyword)
-        .imageUrl(imageUrl)
         .content(request.getContent())
         .likeCount(0)
         .location(request.getLocation())
@@ -54,7 +57,54 @@ public class PostService {
 
     postRepository.save(post);
 
+    // S3에 파일 업로드 후 URL 리스트 받기
+    List<String> imageUrls = s3UploadService.upload(images);
+
+    // Image 엔티티 생성 및 저장
+    for (String imageUrl : imageUrls) {
+      Image image = Image.builder()
+          .imageUrl(imageUrl)
+          .post(post)
+          .build();
+      post.addImage(image);
+    }
+
     log.info("사진 업로드 성공: photoId={}", post.getPostId());
     return post.getPostId();
+  }
+
+  /**
+   * 게시글 필터링
+   * 정렬 조건 : created_date, like_count
+   *
+   * @param request nickname 닉네임 (null 또는 빈 값이면 전체 게시글 조회)
+   */
+  @Transactional(readOnly = true)
+  public Page<Post> getFilteredPosts(PostFilteredRequest request) {
+    try {
+      // null 이거나 created_date/like_count 가 아닐 경우 created_date 를 기본값으로 설정
+      String sortField = (request.getSortField() != null
+                          && request.getSortField().matches("created_date|like_count"))
+          ? request.getSortField() : "created_date";
+      // "ASC" 를 제외한 모든 값이 들어오면 "DESC"로 설정
+      Sort.Direction sortDirection = "ASC".equalsIgnoreCase(request.getSortDirection())
+          ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+      Sort sort = Sort.by(sortDirection, sortField);
+
+      // 페이징 설정
+      Pageable pageable = PageRequest.of(
+          request.getPageNumber(),
+          request.getPageSize(),
+          sort
+      );
+      Page<Post> posts = postRepository.filterPosts(request.getNickname(), pageable);
+
+      log.info("게시물 필터링 성공: totalElements={}", posts.getTotalElements());
+      return posts;
+    } catch (Exception e) {
+      log.error("게시글 필터링 중 오류 발생: {}", e.getMessage());
+      throw new CustomException(ErrorCode.GET_POSTS_FAILED);
+    }
   }
 }

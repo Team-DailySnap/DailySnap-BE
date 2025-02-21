@@ -1,6 +1,7 @@
 package onepiece.dailysnapbackend.object.dto;
 
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +21,7 @@ public class PostRequest {
   private UUID keywordId;
 
   @NotNull(message = "이미지를 업로드하세요")
-  private MultipartFile image;
+  private List<MultipartFile> images;
 
   private String content;
 

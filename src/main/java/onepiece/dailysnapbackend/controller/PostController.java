@@ -5,15 +5,20 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
+import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
 import onepiece.dailysnapbackend.object.postgres.Member;
+import onepiece.dailysnapbackend.object.postgres.Post;
 import onepiece.dailysnapbackend.service.PostService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,5 +41,14 @@ public class PostController implements PostControllerDocs {
       @Valid @ModelAttribute PostRequest request) {
     Member member = userDetails.getMember();
     return ResponseEntity.ok(postService.uploadPost(request, member));
+  }
+
+  @Override
+  @GetMapping
+  @LogMonitoringInvocation
+  public ResponseEntity<Page<Post>> filteredPosts(
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @Valid @RequestBody PostFilteredRequest request) {
+    return ResponseEntity.ok(postService.getFilteredPosts(request));
   }
 }
