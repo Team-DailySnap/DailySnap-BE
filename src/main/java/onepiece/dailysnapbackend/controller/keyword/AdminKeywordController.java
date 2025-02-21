@@ -2,18 +2,23 @@ package onepiece.dailysnapbackend.controller.keyword;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.time.LocalDate;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
-import onepiece.dailysnapbackend.service.KeywordSelectionService;
-import onepiece.dailysnapbackend.service.KeywordService;
+import onepiece.dailysnapbackend.service.keyword.AdminKeywordService;
+import onepiece.dailysnapbackend.service.keyword.KeywordSelectionService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,8 +29,8 @@ import org.springframework.web.bind.annotation.*;
 )
 public class AdminKeywordController implements AdminKeywordControllerDocs{
 
-  private final KeywordService keywordService;
   private final KeywordSelectionService keywordSelectionService;
+  private final AdminKeywordService adminKeywordService;
 
   /**
    * 🔹 특정 카테고리의 키워드가 부족할 경우, OpenAI API를 사용하여 자동 생성
@@ -35,7 +40,7 @@ public class AdminKeywordController implements AdminKeywordControllerDocs{
   public ResponseEntity<Void> generateKeywords(
       @AuthenticationPrincipal CustomUserDetails userDetails,
       @RequestParam KeywordCategory category) {
-    keywordService.generateKeywords(category);
+    adminKeywordService.generateKeywords(category);
     return ResponseEntity.ok().build();
   }
 
@@ -47,7 +52,7 @@ public class AdminKeywordController implements AdminKeywordControllerDocs{
   public ResponseEntity<Void> addAdminKeyword(
       @AuthenticationPrincipal CustomUserDetails userDetails,
       @Valid @RequestBody KeywordRequest request) {
-    keywordService.addAdminKeyword(request);
+    adminKeywordService.addAdminKeyword(request);
     return ResponseEntity.ok().build();
   }
 
@@ -59,7 +64,7 @@ public class AdminKeywordController implements AdminKeywordControllerDocs{
   public ResponseEntity<Void> deleteKeyword(
       @AuthenticationPrincipal CustomUserDetails userDetails,
       @PathVariable UUID id) {
-    keywordService.deleteKeyword(id);
+    adminKeywordService.deleteKeyword(id);
     return ResponseEntity.ok().build();
   }
 }

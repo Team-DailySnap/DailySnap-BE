@@ -36,8 +36,12 @@ public enum ErrorCode {
 
   // MEMBER
 
-  MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "회원을 찾을 수 없습니다.");
+  MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "회원을 찾을 수 없습니다."),
 
+  // KEYWORD
+
+  KEYWORD_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 키워드를 찾을 수 없습니다."),
+  UNSUPPORTED_CATEGORY(HttpStatus.BAD_REQUEST, "지원되지 않는 키워드 카테고리입니다.");
 
   private final HttpStatus status;
   private final String message;

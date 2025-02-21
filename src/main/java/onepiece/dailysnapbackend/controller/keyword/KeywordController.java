@@ -6,7 +6,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
-import onepiece.dailysnapbackend.service.KeywordService;
+import onepiece.dailysnapbackend.service.keyword.KeywordService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
