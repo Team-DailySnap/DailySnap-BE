@@ -5,10 +5,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
+import onepiece.dailysnapbackend.object.dto.PostFilteredResponse;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
 import onepiece.dailysnapbackend.object.dto.PostResponse;
 import onepiece.dailysnapbackend.object.postgres.Member;
-import onepiece.dailysnapbackend.object.postgres.Post;
 import onepiece.dailysnapbackend.service.PostService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
 import org.springframework.data.domain.Page;
@@ -46,7 +46,7 @@ public class PostController implements PostControllerDocs {
   @Override
   @GetMapping
   @LogMonitoringInvocation
-  public ResponseEntity<Page<Post>> filteredPosts(
+  public ResponseEntity<Page<PostFilteredResponse>> filteredPosts(
       @AuthenticationPrincipal CustomUserDetails userDetails,
       @Valid @RequestBody PostFilteredRequest request) {
     return ResponseEntity.ok(postService.getFilteredPosts(request));

@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
+import onepiece.dailysnapbackend.object.dto.PostFilteredResponse;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
 import onepiece.dailysnapbackend.object.dto.PostResponse;
 import onepiece.dailysnapbackend.object.postgres.Image;
@@ -90,7 +91,7 @@ public class PostService {
    * @param request nickname 닉네임 (null 또는 빈 값이면 전체 게시글 조회)
    */
   @Transactional(readOnly = true)
-  public Page<Post> getFilteredPosts(PostFilteredRequest request) {
+  public Page<PostFilteredResponse> getFilteredPosts(PostFilteredRequest request) {
     // null 이거나 created_date/like_count 가 아닐 경우 created_date 를 기본값으로 설정
     String sortField = CommonUtil.nvl(request.getSortField(), "created_date");
     if (!sortField.matches("created_date|like_count")) {
@@ -116,6 +117,13 @@ public class PostService {
     Page<Post> posts = postRepository.filterPosts(request.getNickname(), pageable);
 
     log.info("게시물 필터링 성공: totalElements={}", posts.getTotalElements());
-    return posts;
+    return posts.map(post -> PostFilteredResponse.builder()
+        .member(post.getMember())
+        .keyword(post.getKeyword())
+        .images(imageRepository.findByPost(post))
+        .content(post.getContent())
+        .likeCount(post.getLikeCount())
+        .location(post.getLocation())
+        .build());
   }
 }

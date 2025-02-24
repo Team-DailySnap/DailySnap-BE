@@ -3,9 +3,9 @@ package onepiece.dailysnapbackend.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
+import onepiece.dailysnapbackend.object.dto.PostFilteredResponse;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
 import onepiece.dailysnapbackend.object.dto.PostResponse;
-import onepiece.dailysnapbackend.object.postgres.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 
@@ -19,12 +19,15 @@ public interface PostControllerDocs {
           
           ### 요청 파라미터
           - **keywordId** (UUID): 키워드 id
-          - **image** (MultipartFile): 이미지
+          - **images** (List<MultipartFile>): 이미지
           - **content** (String): 사진 설명 (필수X)
           - **location** (String): 위치 (필수X)
           
           ### 반환값
-          - 업로드된 사진의 id 반환
+          - **keyword** (Keyword) : 키워드
+          - **images** (List<Image>) : 이미지
+          - **content** (String): 사진 설명
+          - **location** (String) : 위치
           
           """
   )
@@ -45,10 +48,15 @@ public interface PostControllerDocs {
           - **sortDirection** (String): 정렬 방향 (`ASC`, `DESC` 중 선택, 기본값: `DESC`)
           
           ### 반환값
-          - 게시글 목록 (페이징 적용)
+          - **member** (Member) : 회원
+          - **keyword** (Keyword) : 키워드
+          - **images** (List<Image>) : 이미지
+          - **content** (String): 사진 설명
+          - **likeCount** (Integer) : 좋아요수
+          - **location** (String) : 위치
           
           """
   )
-  ResponseEntity<Page<Post>> filteredPosts
+  ResponseEntity<Page<PostFilteredResponse>> filteredPosts
       (CustomUserDetails userDetails, PostFilteredRequest request);
 }
