@@ -1,10 +1,10 @@
 package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import java.util.UUID;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
+import onepiece.dailysnapbackend.object.dto.PostResponse;
 import onepiece.dailysnapbackend.object.postgres.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +19,7 @@ public interface PostControllerDocs {
           
           ### 요청 파라미터
           - **keywordId** (UUID): 키워드 id
-          - **imageUrl** (MultipartFile): 이미지 url
+          - **image** (MultipartFile): 이미지
           - **content** (String): 사진 설명 (필수X)
           - **location** (String): 위치 (필수X)
           
@@ -28,7 +28,7 @@ public interface PostControllerDocs {
           
           """
   )
-  ResponseEntity<UUID> uploadPost
+  ResponseEntity<PostResponse> uploadPost
       (CustomUserDetails userDetails, PostRequest request);
 
   @Operation(

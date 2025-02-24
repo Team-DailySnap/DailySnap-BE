@@ -14,14 +14,14 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
             SELECT p.*
             FROM post p
             JOIN member m ON p.member_id = m.member_id
-            WHERE :nickname IS NULL OR trim(:nickname) = ''
+            WHERE trim(:nickname) = ''
                   OR lower(m.nickname) LIKE lower(concat('%', trim(:nickname), '%'))
             """,
       countQuery = """
             SELECT count(*)
             FROM post p
             JOIN member m ON p.member_id = m.member_id
-            WHERE :nickname IS NULL OR trim(:nickname) = ''
+            WHERE trim(:nickname) = ''
                   OR lower(m.nickname) LIKE lower(concat('%', trim(:nickname), '%'))
             """,
       nativeQuery = true)

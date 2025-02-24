@@ -48,8 +48,6 @@ public enum ErrorCode {
 
   INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 파일 형식입니다."),
 
-  GET_POSTS_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 조회에 실패했습니다."),
-
   // KEYWORD
 
   KEYWORD_NOT_FOUND(HttpStatus.BAD_REQUEST, "키워드를 찾을 수 없습니다.");

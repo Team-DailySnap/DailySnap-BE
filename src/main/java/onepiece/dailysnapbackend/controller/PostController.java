@@ -2,11 +2,11 @@ package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
+import onepiece.dailysnapbackend.object.dto.PostResponse;
 import onepiece.dailysnapbackend.object.postgres.Member;
 import onepiece.dailysnapbackend.object.postgres.Post;
 import onepiece.dailysnapbackend.service.PostService;
@@ -36,7 +36,7 @@ public class PostController implements PostControllerDocs {
   @Override
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @LogMonitoringInvocation
-  public ResponseEntity<UUID> uploadPost(
+  public ResponseEntity<PostResponse> uploadPost(
       @AuthenticationPrincipal CustomUserDetails userDetails,
       @Valid @ModelAttribute PostRequest request) {
     Member member = userDetails.getMember();
