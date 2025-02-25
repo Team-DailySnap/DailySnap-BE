@@ -8,7 +8,6 @@ import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
 import onepiece.dailysnapbackend.object.postgres.Keyword;
 import onepiece.dailysnapbackend.repository.postgres.KeywordRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +58,7 @@ public class KeywordService {
    */
   private KeywordRequest toKeywordRequest(Keyword keyword) {
     return KeywordRequest.builder()
-        .keyword(keyword.getKeyword())
+        .keyword(keyword.getCategory())
         .category(keyword.getCategory().name())
         .specifiedDate(keyword.getSpecifiedDate())
         .providedDate(keyword.getProvidedDate())

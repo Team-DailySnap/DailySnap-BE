@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/keywords")
+@RequestMapping("/api/keyword")
 @Tag(
     name = "키워드 관리 API",
     description = "키워드 자동 생성 및 관리 API 제공"

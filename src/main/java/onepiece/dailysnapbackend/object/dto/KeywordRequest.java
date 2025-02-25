@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 
 @Getter
 @Setter
@@ -19,7 +20,7 @@ public class KeywordRequest {
   private String category;
 
   @NotNull(message = "키워드를 입력하세요")
-  private String keyword;
+  private KeywordCategory keyword;
 
   // 특정 날짜에 제공할 키워드
   private LocalDate specifiedDate;

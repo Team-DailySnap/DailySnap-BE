@@ -56,6 +56,12 @@ public class KeywordSelectionService {
     if (remainingCount <= KEYWORD_THRESHOLD) {
       log.info("카테고리 '{}' 키워드 부족 → OpenAI API 호출", selectedCategory);
       openAIKeywordService.generateKeywords(selectedCategory);
+
+      keyword = keywordRepository.findTopByCategoryAndIsUsedFalse(selectedCategory);
+      if (keyword.isPresent()) {
+        markKeywordAsUsed(keyword.get());
+        return toKeywordRequest(keyword.get());
+      }
     }
 
     // 5. 키워드를 찾지 못하면 예외 발생
@@ -72,10 +78,10 @@ public class KeywordSelectionService {
         KeywordCategory.DAILY,
         KeywordCategory.ABSTRACT,
         KeywordCategory.RANDOM,
-        KeywordCategory.SEASON_SPRING,
-        KeywordCategory.SEASON_SUMMER,
-        KeywordCategory.SEASON_AUTUMN,
-        KeywordCategory.SEASON_WINTER
+        KeywordCategory.SPRING,
+        KeywordCategory.SUMMER,
+        KeywordCategory.AUTUMN,
+        KeywordCategory.WINTER
     );
 
     // 마지막으로 제공된 키워드 확인
@@ -104,10 +110,10 @@ public class KeywordSelectionService {
    * 🔹 주어진 카테고리가 계절 카테고리인지 확인
    */
   private boolean isSeasonCategory(KeywordCategory category) {
-    return category == KeywordCategory.SEASON_SPRING ||
-           category == KeywordCategory.SEASON_SUMMER ||
-           category == KeywordCategory.SEASON_AUTUMN ||
-           category == KeywordCategory.SEASON_WINTER;
+    return category == KeywordCategory.SPRING ||
+           category == KeywordCategory.SUMMER ||
+           category == KeywordCategory.AUTUMN ||
+           category == KeywordCategory.WINTER;
   }
 
   /**
@@ -115,10 +121,10 @@ public class KeywordSelectionService {
    */
   private boolean isCurrentSeason(KeywordCategory category) {
     int month = LocalDate.now().getMonthValue();
-    return (category == KeywordCategory.SEASON_SPRING && month >= 3 && month <= 5) ||
-           (category == KeywordCategory.SEASON_SUMMER && month >= 6 && month <= 8) ||
-           (category == KeywordCategory.SEASON_AUTUMN && month >= 9 && month <= 11) ||
-           (category == KeywordCategory.SEASON_WINTER && (month == 12 || month <= 2));
+    return (category == KeywordCategory.SPRING && month >= 3 && month <= 5) ||
+           (category == KeywordCategory.SUMMER && month >= 6 && month <= 8) ||
+           (category == KeywordCategory.AUTUMN && month >= 9 && month <= 11) ||
+           (category == KeywordCategory.WINTER && (month == 12 || month <= 2));
   }
 
   /**
@@ -131,11 +137,11 @@ public class KeywordSelectionService {
   }
 
   /**
-   * 🔹 Keyword 엔티티를 KeywordRequest DTO로 변환
+   * 🔹 Keyword 엔티티를 KeywordRequest DTO로 변환 ( ***리펙토링 할게요 mapstruct로 수정 예정*** )
    */
   private KeywordRequest toKeywordRequest(Keyword keyword) {
     return KeywordRequest.builder()
-        .keyword(keyword.getKeyword())
+        .keyword(keyword.getCategory())
         .category(keyword.getCategory().name())
         .specifiedDate(keyword.getSpecifiedDate())
         .providedDate(keyword.getProvidedDate())
