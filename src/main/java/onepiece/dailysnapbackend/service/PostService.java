@@ -75,7 +75,7 @@ public class PostService {
         .collect(Collectors.toList());
 
     imageRepository.saveAll(imageEntities);
-    log.info("사진 업로드 성공: photoId={}", post.getPostId());
+    log.info("게시물 업로드 성공: postId={}", post.getPostId());
 
     return PostResponse.builder()
         .keyword(post.getKeyword())
