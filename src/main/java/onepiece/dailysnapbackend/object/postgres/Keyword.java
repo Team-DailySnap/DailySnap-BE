@@ -8,7 +8,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,9 +38,6 @@ public class Keyword extends BasePostgresEntity{
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private KeywordCategory category;
-
-  @Column(nullable = false)
-  private LocalDateTime createdDate;
 
   // 특정 날짜에 제공할 키워드 (ADMIN_SET에서 사용)
   private LocalDate specifiedDate;

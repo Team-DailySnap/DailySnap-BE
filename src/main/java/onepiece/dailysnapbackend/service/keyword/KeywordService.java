@@ -4,10 +4,16 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import onepiece.dailysnapbackend.object.constants.KeywordCategory;
-import onepiece.dailysnapbackend.object.dto.KeywordRequest;
+import onepiece.dailysnapbackend.object.dto.KeywordFilterRequest;
+import onepiece.dailysnapbackend.object.dto.KeywordFilterResponse;
 import onepiece.dailysnapbackend.object.postgres.Keyword;
 import onepiece.dailysnapbackend.repository.postgres.KeywordRepository;
+import onepiece.dailysnapbackend.util.exception.CustomException;
+import onepiece.dailysnapbackend.util.exception.ErrorCode;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,50 +23,71 @@ import org.springframework.transaction.annotation.Transactional;
 public class KeywordService {
 
   private final KeywordRepository keywordRepository;
-  private final KeywordSelectionService keywordSelectionService;
 
-  /**
-   * 🔹 특정 카테고리의 키워드 목록 조회
-   */
   @Transactional(readOnly = true)
-  public List<KeywordRequest> getKeywordsByCategory(KeywordCategory category) {
-    List<Keyword> keywords = keywordRepository.findByCategory(category);
-    List<KeywordRequest> keywordList = keywords.stream().map(this::toKeywordRequest).toList();
+  public Page<KeywordFilterResponse> filteredKeywords(KeywordFilterRequest request) {
+    log.info("[KeywordService] filteredKeywords() 호출됨");
+    log.info("요청 데이터: keyword={}, category={}, providedDate={}, pageNumber={}, pageSize={}, sortField={}, sortDirection={}",
+        request.getKeyword(), request.getCategory(), request.getProvidedDate(),
+        request.getPageNumber(), request.getPageSize(), request.getSortField(), request.getSortDirection());
 
-    log.info("[KeywordService] 카테고리 조회: category={}, count={}", category, keywordList.size());
-    return keywordList;
-  }
-
-  /**
-   * 🔹 특정 날짜의 제공된 키워드 조회 (오늘 포함, 미래 조회 불가)
-   */
-  @Transactional(readOnly = true)
-  public List<KeywordRequest> getKeywordsByDate(LocalDate date) {
-    LocalDate today = LocalDate.now();
-
-    // 오늘 날짜 조회 시, getTodayKeyword() 호출
-    if (date.isEqual(today)) {
-      KeywordRequest todayKeyword = keywordSelectionService.getTodayKeyword();
-      log.info("[KeywordService] 오늘 날짜 키워드 조회: keyword='{}', category='{}'", todayKeyword.getKeyword(), todayKeyword.getCategory());
-      return List.of(todayKeyword);
+    // 1. pageSize 검증 (최대 100 제한)
+    if (request.getPageSize() > 100) {
+      log.error("[KeywordService] 잘못된 요청: pageSize 값이 100을 초과함");
+      throw new CustomException(ErrorCode.INVALID_REQUEST);
     }
 
-    // 과거 날짜 조회
-    List<Keyword> keywords = keywordRepository.findByProvidedDate(date);
-    List<KeywordRequest> keywordList = keywords.stream().map(this::toKeywordRequest).toList();
+    // 2. sortDirection 검증 (ASC or DESC)
+    String sortDirection = request.getSortDirection().toUpperCase();
+    if (!sortDirection.equals("ASC") && !sortDirection.equals("DESC")) {
+      log.error("[KeywordService] 잘못된 요청: sortDirection 값이 ASC 또는 DESC가 아님");
+      throw new CustomException(ErrorCode.INVALID_REQUEST);
+    }
 
-    log.info("[KeywordService] 날짜별 키워드 조회: date={}, count={}", date, keywordList.size());
-    return keywordList;
+    // 3. sortField 검증 (Keyword 엔티티에 존재하는 필드인지 확인)
+    List<String> allowedFields = List.of("provided_date", "keyword");
+    if (!allowedFields.contains(request.getSortField())) {
+      log.error("[KeywordService] 잘못된 요청: sortField 값이 유효하지 않음 - {}", request.getSortField());
+      throw new CustomException(ErrorCode.INVALID_REQUEST);
+    }
+
+    // 4. Pageable 설정
+    Pageable pageable = PageRequest.of(
+        request.getPageNumber(),
+        request.getPageSize(),
+        Sort.by(Sort.Direction.fromString(sortDirection), request.getSortField())
+    );
+
+    // 5. 필터링할 providedDate 값 설정 (NULL 허용)
+    LocalDate providedDate = request.getProvidedDate();
+    log.info("[KeywordService] 필터링 실행: keyword={}, category={}, providedDate={}", request.getKeyword(), request.getCategory(), providedDate);
+
+    // 6. 필터링 실행 (쿼리 실행 로그 포함)
+    Page<Keyword> page;
+    try {
+      page = keywordRepository.filteredKeyword(
+          request.getKeyword(),
+          request.getCategory(),
+          providedDate,
+          pageable
+      );
+      log.info("[KeywordService] 쿼리 실행 완료. 결과 개수: {}", page.getTotalElements());
+    } catch (Exception e) {
+      log.error("[KeywordService] 쿼리 실행 중 예외 발생: ", e);
+      throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
+
+    // 7. Keyword 엔티티를 DTO로 변환하여 반환
+    return page.map(this::toKeywordFilterResponse);
   }
 
   /**
-   * 🔹 Keyword 엔티티를 KeywordRequest DTO로 변환 ( ***리펙토링 할게요 mapstruct로 수정 예정*** )
+   * Keyword 엔티티를 KeywordFilterResponse DTO로 변환 (추후에 추가 예정)
    */
-  private KeywordRequest toKeywordRequest(Keyword keyword) {
-    return KeywordRequest.builder()
-        .keyword(keyword.getCategory())
-        .category(keyword.getCategory().name())
-        .specifiedDate(keyword.getSpecifiedDate())
+  private KeywordFilterResponse toKeywordFilterResponse(Keyword keyword) {
+    return KeywordFilterResponse.builder()
+        .keyword(keyword.getKeyword())
+        .category(keyword.getCategory())
         .providedDate(keyword.getProvidedDate())
         .build();
   }

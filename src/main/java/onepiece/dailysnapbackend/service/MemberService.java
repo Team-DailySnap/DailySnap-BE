@@ -47,6 +47,8 @@ public class MemberService {
         .birth(request.getBirth())
         .role(Role.ROLE_USER)
         .accountStatus(AccountStatus.ACTIVE_ACCOUNT)
+        .dailyUploadCount(0)
+        .isPaid(false)
         .build()
     );
     log.info("회원가입 성공: username={}", request.getUsername());

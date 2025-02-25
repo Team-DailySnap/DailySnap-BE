@@ -1,35 +1,64 @@
 package onepiece.dailysnapbackend.repository.postgres;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 import onepiece.dailysnapbackend.object.postgres.Keyword;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
 
-  // 사용되지 않은 키워드 중 가장 먼저 등록된 키워드 조회
-  Optional<Keyword> findTopByCategoryAndIsUsedFalse(KeywordCategory category);
+  // ADMIN_SET 카테고리에서 특정 날짜의 키워드를 검색
+  @Query(value = """
+            SELECT k.*
+            FROM keyword k
+            WHERE k.category = 'ADMIN_SET'
+              AND k.specified_date = :providedDate
+            """,
+      nativeQuery = true)
+  Page<Keyword> findAdminSetKeyword(@Param("providedDate") LocalDate providedDate, Pageable pageable);
 
-  // 특정 날짜에 제공될 '관리자 지정(ADMIN_SET)' 키워드 조회
-  Optional<Keyword> findByCategoryAndSpecifiedDate(KeywordCategory category, LocalDate date);
+  // 특정 카테고리에서 isUsed=false인 키워드 조회
+  @Query(value = """
+            SELECT k.*
+            FROM keyword k
+            WHERE k.category = :category
+              AND k.is_used = false
+            """,
+      nativeQuery = true)
+  Page<Keyword> findUnusedKeywords(@Param("category") KeywordCategory category, Pageable pageable);
 
-  // 특정 카테고리의 키워드 개수 조회
-  long countByCategory(KeywordCategory category);
+  // 특정 카테고리에서 사용되지 않은 키워드 개수 확인
+  @Query(value = """
+            SELECT COUNT(*)
+            FROM keyword k
+            WHERE k.category = :category
+              AND k.is_used = false
+            """,
+      nativeQuery = true)
+  long countUnusedKeywords(@Param("category") KeywordCategory category);
 
-  // 가장 최근 제공된 키워드 조회
-  Optional<Keyword> findTopByOrderByProvidedDateDesc();
-
-  // 특정 카테고리에 속한 모든 키워드 조회
-  List<Keyword> findByCategory(KeywordCategory category);
-
-  // 특정 날짜에 제공된 모든 키워드 조회
-  List<Keyword> findByProvidedDate(LocalDate date);
-
-  // 특정 키워드가 이미 존재하는지 확인
-  boolean existsByKeyword(String keyword);
+  // 기존 필터링
+  @Query(value = """
+            SELECT k.*
+            FROM keyword k
+            WHERE (:keyword IS NULL OR lower(k.keyword) LIKE lower(concat('%', trim(:keyword), '%')))
+              AND (:category IS NULL OR k.category = :category)
+              AND (
+                   :providedDate IS NULL
+                   OR (:providedDate = 'NULL_DATE' AND k.provided_date IS NULL)
+                   OR (:providedDate != 'NULL_DATE' AND k.provided_date = :providedDate)
+                 )
+            """,
+      nativeQuery = true)
+  Page<Keyword> filteredKeyword(@Param("keyword") String keyword,
+      @Param("category") KeywordCategory category,
+      @Param("providedDate") LocalDate providedDate,
+      Pageable pageable);
 }

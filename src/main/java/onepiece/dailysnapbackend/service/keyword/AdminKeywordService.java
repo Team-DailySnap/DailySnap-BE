@@ -1,6 +1,5 @@
 package onepiece.dailysnapbackend.service.keyword;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,9 +38,8 @@ public class AdminKeywordService {
   public void addAdminKeyword(KeywordRequest request) {
     keywordRepository.save(
         Keyword.builder()
-            .keyword(request.getKeyword())
+            .keywordId(UUID.randomUUID())
             .category(KeywordCategory.ADMIN_SET)
-            .createdDate(LocalDateTime.now())
             .specifiedDate(request.getSpecifiedDate())
             .isUsed(false)
             .build()
@@ -55,7 +53,7 @@ public class AdminKeywordService {
   @Transactional
   public void deleteKeyword(UUID id) {
     if (!keywordRepository.existsById(id)) {
-      log.info("[AdminKeywordService] 삭제 요청한 키워드를 찾을 수 없음: {}", id);
+      log.error("[AdminKeywordService] 삭제 요청한 키워드를 찾을 수 없음: {}", id);
       throw new CustomException(ErrorCode.KEYWORD_NOT_FOUND);
     }
 

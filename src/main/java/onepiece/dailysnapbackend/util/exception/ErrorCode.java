@@ -41,7 +41,12 @@ public enum ErrorCode {
   // KEYWORD
 
   KEYWORD_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 키워드를 찾을 수 없습니다."),
-  UNSUPPORTED_CATEGORY(HttpStatus.BAD_REQUEST, "지원되지 않는 키워드 카테고리입니다.");
+  UNSUPPORTED_CATEGORY(HttpStatus.BAD_REQUEST, "지원되지 않는 키워드 카테고리입니다."),
+  KEYWORD_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "키워드 저장에 실패했습니다."),
+  JSON_SERIALIZATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "키워드 요청 JSON 직렬화 실패"),
+  OPENAI_API_REQUEST_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "OpenAI API 요청에 실패했습니다."),
+  OPENAI_RESPONSE_PARSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "OpenAI 응답 파싱에 실패했습니다.");
+
 
   private final HttpStatus status;
   private final String message;
