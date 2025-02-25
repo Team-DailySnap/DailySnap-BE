@@ -22,7 +22,7 @@ public class CustomTag extends BaseMongoEntity {
 
   // 연결된 사진 게시물 ID
   @Indexed
-  private UUID photoId;
+  private UUID postId;
 
   // 태그 내용
   private String customTag;

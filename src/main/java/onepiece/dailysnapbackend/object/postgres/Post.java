@@ -20,13 +20,13 @@
   @NoArgsConstructor
   @AllArgsConstructor
   @SuperBuilder
-  public class Photo extends BasePostgresEntity{
+  public class Post extends BasePostgresEntity{
 
     // 게시물 ID
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(columnDefinition = "uuid DEFAULT uuid_generate_v4()", updatable = false, nullable = false)
-    private UUID photoId;
+    private UUID postId;
 
     // 작성자 회원
     @ManyToOne(fetch= FetchType.LAZY)
@@ -34,15 +34,11 @@
 
     // 키워드
     @ManyToOne(fetch = FetchType.LAZY)
-    private Keyword Keyword;
+    private Keyword keyword;
 
     // 일간 우수작
     @ManyToOne(fetch = FetchType.LAZY)
     private DailyBest dailyBest;
-
-    // 사진 URL
-    @Column(nullable = false)
-    private String imageUrl;
 
     // 사진 설명
     @Column(nullable = true)

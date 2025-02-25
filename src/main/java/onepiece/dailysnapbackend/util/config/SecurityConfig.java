@@ -40,9 +40,13 @@ public class SecurityConfig {
   private static final String[] ALLOWED_ORIGINS = {
       "http://34.64.71.203:8087", // 메인 API 서버
       "http://34.64.71.203:8088", // 테스트 API 서버
-      // TODO: 메인 웹 서버 추가
+
       "http://localhost:8080", // 로컬 API 서버
-      "http://localhost:3000" // 로컬 웹 서버
+      "http://localhost:3000", // 로컬 웹 서버
+
+      "https://dailysnap.store", // 프론트
+      "https://api.dailysnap.store", // 메인 API 서버
+      "https://test.dailysnap.store" // 테스트 API 서버
   };
 
   /**
