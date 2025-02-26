@@ -14,51 +14,43 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
 
-  // ADMIN_SET 카테고리에서 특정 날짜의 키워드를 검색
   @Query(value = """
-            SELECT k.*
-            FROM keyword k
-            WHERE k.category = 'ADMIN_SET'
-              AND k.specified_date = :providedDate
-            """,
-      nativeQuery = true)
-  Page<Keyword> findAdminSetKeyword(@Param("providedDate") LocalDate providedDate, Pageable pageable);
+            SELECT k.* FROM keyword k 
+            WHERE k.category = 'ADMIN_SET' 
+              AND k.specified_date = :providedDate 
+            LIMIT 1
+            """, nativeQuery = true)
+  Keyword findAdminSetKeyword(@Param("providedDate") LocalDate providedDate);
 
-  // 특정 카테고리에서 isUsed=false인 키워드 조회
   @Query(value = """
-            SELECT k.*
-            FROM keyword k
-            WHERE k.category = :category
-              AND k.is_used = false
-            """,
-      nativeQuery = true)
-  Page<Keyword> findUnusedKeywords(@Param("category") KeywordCategory category, Pageable pageable);
+            SELECT k.* FROM keyword k 
+            WHERE k.category = CAST(:category AS text) 
+              AND k.is_used = false 
+            LIMIT 1
+            """, nativeQuery = true)
+  Keyword findUnusedKeyword(@Param("category") KeywordCategory category);
 
-  // 특정 카테고리에서 사용되지 않은 키워드 개수 확인
-  @Query(value = """
-            SELECT COUNT(*)
-            FROM keyword k
-            WHERE k.category = :category
-              AND k.is_used = false
-            """,
-      nativeQuery = true)
-  long countUnusedKeywords(@Param("category") KeywordCategory category);
+  long countByCategoryAndIsUsedFalse(@Param("category") KeywordCategory category);
 
-  // 기존 필터링
   @Query(value = """
-            SELECT k.*
-            FROM keyword k
-            WHERE (:keyword IS NULL OR lower(k.keyword) LIKE lower(concat('%', trim(:keyword), '%')))
-              AND (:category IS NULL OR k.category = :category)
-              AND (
-                   :providedDate IS NULL
-                   OR (:providedDate = 'NULL_DATE' AND k.provided_date IS NULL)
-                   OR (:providedDate != 'NULL_DATE' AND k.provided_date = :providedDate)
-                 )
-            """,
-      nativeQuery = true)
-  Page<Keyword> filteredKeyword(@Param("keyword") String keyword,
+    SELECT k.* FROM keyword k 
+    WHERE (:keyword IS NULL OR k.keyword ILIKE CONCAT('%', TRIM(:keyword), '%')) 
+      AND (:category IS NULL OR k.category = CAST(:category AS text)) 
+      AND (:providedDate IS NULL OR k.provided_date IS NULL OR k.provided_date = CAST(:providedDate AS DATE)) 
+    ORDER BY k.created_date DESC
+    """, nativeQuery = true)
+  Page<Keyword> filteredKeyword(
+      @Param("keyword") String keyword,
       @Param("category") KeywordCategory category,
       @Param("providedDate") LocalDate providedDate,
       Pageable pageable);
 }
+
+// grok3
+/*
+1. 네이티브 쿼리
+2. 네이티브 쿼리와 JPQL의 차이점
+3. 네이티브쿼리 count
+4. 네이티브쿼리를 사용할 때 pageable
+5. 48-64줄 수정
+ */
