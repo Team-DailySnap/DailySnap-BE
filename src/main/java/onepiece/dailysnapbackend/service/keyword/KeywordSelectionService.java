@@ -45,11 +45,22 @@ public class KeywordSelectionService {
 
     // 해당 카테고리에서 isUsed=false인 키워드 조회
     Keyword unusedKeyword = keywordRepository.findUnusedKeyword(selectedCategory);
+    if (unusedKeyword == null) {
+      log.warn("[KeywordSelectionService] '{}' 카테고리에서 사용 가능한 키워드가 없음. OpenAI에서 생성한 후 다시 조회", selectedCategory);
+
+      openAIKeywordService.generateKeywords(selectedCategory); // ✅ REQUIRES_NEW 트랜잭션에서 실행
+      keywordRepository.flush(); // 즉시 DB 반영
+
+      unusedKeyword = keywordRepository.findUnusedKeyword(selectedCategory);
+    }
+
     if (unusedKeyword != null) {
       markKeywordAsUsed(unusedKeyword);
-      log.info("[KeywordSelectionService] 사용되지 않은 키워드를 선택함: {}", unusedKeyword);
+      log.info("[KeywordSelectionService] OpenAI에서 새 키워드를 가져와 사용함: {}", unusedKeyword);
       return toKeywordRequest(unusedKeyword);
     }
+
+
 
     // 사용 가능한 키워드 개수 확인
     long remainingCount = keywordRepository.countByCategoryAndIsUsedFalse(selectedCategory);
