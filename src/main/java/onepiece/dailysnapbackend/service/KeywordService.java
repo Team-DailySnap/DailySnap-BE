@@ -12,6 +12,7 @@ import onepiece.dailysnapbackend.util.exception.ErrorCode;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class KeywordService {
 
   private static final String KEYWORD_CACHE_KEY = "daily_keyword";
 
+  @Transactional(readOnly = true)
   public DailyKeywordResponse getDailyKeyword() {
     String keywordId = redisTemplate.opsForValue().get(KEYWORD_CACHE_KEY);
     // redis 에 오늘의 키워드가 없다면 DB 에서 조회 후 업데이트
@@ -53,6 +55,7 @@ public class KeywordService {
 
   // 매일 자정 Redis 에 업데이트
   @Scheduled(cron = "0 0 0 * * ?")
+  @Transactional(readOnly = true)
   public void refreshDailyKeyword() {
     UUID keywordId = fetchKeywordFromDB();
     log.info("오늘의 키워드를 업데이트했습니다. dailyKeyword: {}", keywordId);
