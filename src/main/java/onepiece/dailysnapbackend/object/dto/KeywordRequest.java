@@ -21,6 +21,4 @@ public class KeywordRequest {
 
   private LocalDate specifiedDate;  // 특정 날짜에 제공될 키워드
 
-  private LocalDate providedDate;  // 해당 키워드가 사용자에게 제공된 날짜
-
 }

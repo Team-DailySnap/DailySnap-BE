@@ -19,6 +19,7 @@ public interface KeywordControllerDocs {
           - **keyword** (String, 선택): 키워드 텍스트 필터링 (빈 값일 경우 전체 조회)
           - **category** (KeywordCategory, 선택): 키워드 카테고리
           - **providedDate** (LocalDate, 선택): 제공된 날짜
+          - **isUsed** (Boolean, 선택): 사용 여부
           - **pageNumber** (int, 기본값: 0): 페이지 번호 (0부터 시작)
           - **pageSize** (int, 기본값: 30, 최대 100): 페이지당 키워드 개수
           - **sortField** (String, 기본값: `created_date`): 정렬 기준 (`created_date`, `provided_date`, `keyword`)
@@ -28,6 +29,7 @@ public interface KeywordControllerDocs {
           - **keyword** (String): 키워드 텍스트
           - **category** (KeywordCategory): 키워드 카테고리
           - **providedDate** (LocalDate): 제공된 날짜
+          - **isUsed** (Boolean, 선택): 사용 여부
           """
   )
   ResponseEntity<Page<KeywordFilterResponse>> filteredKeywords(

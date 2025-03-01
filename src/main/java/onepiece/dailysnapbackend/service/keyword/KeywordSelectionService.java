@@ -1,5 +1,7 @@
 package onepiece.dailysnapbackend.service.keyword;
 
+import static onepiece.dailysnapbackend.object.constants.KeywordCategory.ADMIN_SET;
+
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +21,7 @@ public class KeywordSelectionService {
 
   private final KeywordRepository keywordRepository;
   private final OpenAIKeywordService openAIKeywordService;
-  private static final int KEYWORD_THRESHOLD = 5;
 
-  private static int lastIndex = -1; // 이전 선택한 카테고리 인덱스
   private static final KeywordCategory[] allCategories = {
       KeywordCategory.SPRING, KeywordCategory.SUMMER, KeywordCategory.AUTUMN, KeywordCategory.WINTER,
       KeywordCategory.TRAVEL, KeywordCategory.DAILY, KeywordCategory.ABSTRACT, KeywordCategory.RANDOM
@@ -30,113 +30,116 @@ public class KeywordSelectionService {
   @Transactional
   public KeywordRequest getTodayKeyword() {
     LocalDate today = LocalDate.now();
+    LocalDate yesterday = today.minusDays(1);
+    log.info("[KeywordSelectionService] 오늘의 키워드 조회 시작: date={}", today);
 
-    log.info("[KeywordSelectionService] 오늘 날짜 키워드 조회 시작: {}", today);
-
-    // ADMIN_SET 카테고리에서 오늘 날짜의 키워드 확인
-    Keyword adminKeyword = keywordRepository.findAdminSetKeyword(today);
-    if (adminKeyword != null) {
-      log.info("[KeywordSelectionService] ADMIN_SET에서 오늘의 키워드를 찾음: {}", adminKeyword);
+    // ADMIN_SET 키워드 확인 (특정 날짜 키워드 우선 제공)
+    Keyword adminKeyword = keywordRepository.findFirstByCategoryAndSpecifiedDate(ADMIN_SET, today).orElse(null);
+    if (adminKeyword != null && !adminKeyword.isUsed()) {
+      log.info("[KeywordSelectionService] ADMIN_SET 키워드 발견: keyword={}", adminKeyword.getKeyword());
+      markKeywordAsUsed(adminKeyword);
       return toKeywordRequest(adminKeyword);
     }
 
-    // 계절 기반 카테고리 선택 (순차적 순환)
-    KeywordCategory selectedCategory = selectCategory();
+    // 어제 제공된 키워드 확인 → 그 다음 카테고리 선택
+    KeywordCategory selectedCategory = getNextCategory(yesterday);
+    log.info("[KeywordSelectionService] 선택된 카테고리: category={}", selectedCategory);
 
-    // 해당 카테고리에서 isUsed=false인 키워드 조회
-    Keyword unusedKeyword = keywordRepository.findUnusedKeyword(selectedCategory);
+    // 선택된 카테고리에서 미사용 키워드 조회
+    Keyword unusedKeyword = keywordRepository.findFirstByCategoryAndIsUsedFalse(selectedCategory).orElse(null);
     if (unusedKeyword == null) {
-      log.warn("[KeywordSelectionService] '{}' 카테고리에서 사용 가능한 키워드가 없음. OpenAI에서 생성한 후 다시 조회", selectedCategory);
-
-      openAIKeywordService.generateKeywords(selectedCategory); // ✅ REQUIRES_NEW 트랜잭션에서 실행
-      keywordRepository.flush(); // 즉시 DB 반영
-
-      unusedKeyword = keywordRepository.findUnusedKeyword(selectedCategory);
+      log.warn("[KeywordSelectionService] 사용 가능한 키워드 없음, OpenAI로 새 키워드 생성: category={}", selectedCategory);
+      openAIKeywordService.generateKeywords(selectedCategory);
+      unusedKeyword = keywordRepository.findFirstByCategoryAndIsUsedFalse(selectedCategory).orElse(null);
     }
 
     if (unusedKeyword != null) {
+      log.info("[KeywordSelectionService] 선택된 키워드: keyword={}", unusedKeyword.getKeyword());
       markKeywordAsUsed(unusedKeyword);
-      log.info("[KeywordSelectionService] OpenAI에서 새 키워드를 가져와 사용함: {}", unusedKeyword);
       return toKeywordRequest(unusedKeyword);
     }
 
-
-
-    // 사용 가능한 키워드 개수 확인
-    long remainingCount = keywordRepository.countByCategoryAndIsUsedFalse(selectedCategory);
-    if (remainingCount <= KEYWORD_THRESHOLD) {
-      log.info("[KeywordSelectionService] '{}' 카테고리의 키워드 개수가 부족하여 OpenAI 호출", selectedCategory);
-      openAIKeywordService.generateKeywords(selectedCategory);
-    }
-    // 새롭게 생성된 키워드를 다시 검색
-    Keyword newKeyword = keywordRepository.findUnusedKeyword(selectedCategory);
-    if (newKeyword != null) {
-      markKeywordAsUsed(newKeyword);
-      log.info("[KeywordSelectionService] OpenAI에서 새 키워드를 가져와 사용함: {}", newKeyword);
-      return toKeywordRequest(newKeyword);
-    }
-
+    log.error("[KeywordSelectionService] 키워드 조회 실패: 사용 가능한 키워드 없음");
     throw new CustomException(ErrorCode.KEYWORD_NOT_FOUND);
   }
 
-  private void markKeywordAsUsed(Keyword keyword) {
+  @Transactional
+  public void markKeywordAsUsed(Keyword keyword) {
     keyword.setUsed(true);
     keyword.setProvidedDate(LocalDate.now());
-    keywordRepository.save(keyword);
+    keywordRepository.saveAndFlush(keyword);
+    log.info("[KeywordSelectionService] 키워드 사용 처리 완료: keyword={}, isUsed={}, providedDate={}",
+        keyword.getKeyword(), keyword.isUsed(), keyword.getProvidedDate());
   }
 
   /**
-   * 순차적으로 카테고리를 선택하는 로직
+   *  어제 카테고리를 기반으로 순환 방식으로 다음 카테고리 선택
+   *    - allCategories 배열 순서대로 순환
+   *    - 계절 카테고리라면 현재 월과 일치하는지 확인 후 선택
    */
-  private KeywordCategory selectCategory() {
-    int month = LocalDate.now().getMonthValue(); // 현재 월 가져오기
-    KeywordCategory[] seasonCategories;
+  private KeywordCategory getNextCategory(LocalDate yesterday) {
+    // 어제 제공된 키워드 조회
+    Keyword lastKeyword = keywordRepository.findFirstByProvidedDate(yesterday).orElse(null);
 
-    // 3~5월: 봄
-    if (month >= 3 && month <= 5) {
-      seasonCategories = new KeywordCategory[]{KeywordCategory.SPRING};
-    }
-    // ☀6~8월: 여름
-    else if (month >= 6 && month <= 8) {
-      seasonCategories = new KeywordCategory[]{KeywordCategory.SUMMER};
-    }
-    // 9~11월: 가을
-    else if (month >= 9 && month <= 11) {
-      seasonCategories = new KeywordCategory[]{KeywordCategory.AUTUMN};
-    }
-    // 12~2월: 겨울
-    else {
-      seasonCategories = new KeywordCategory[]{KeywordCategory.WINTER};
+    // 어제 키워드가 없으면 기본적으로 현재 월의 계절 카테고리를 선택
+    if (lastKeyword == null) {
+      log.info("[KeywordSelectionService] 어제 키워드 없음 → 현재 시즌 카테고리 선택");
+      return getSeasonCategory();
     }
 
-    // 현재 계절이면 해당 계절만 선택
-    if (lastIndex == -1 || contains(seasonCategories, allCategories[lastIndex])) {
-      lastIndex = 0; // 계절이 맞으면 처음부터 다시 시작
-      log.info("[KeywordSelectionService] 계절에 맞는 카테고리 선택: {}", seasonCategories[0]);
-      return seasonCategories[0];
+    //  어제 사용된 카테고리 찾기
+    int lastIndex = indexOfCategory(lastKeyword.getCategory());
+    int nextIndex = (lastIndex + 1) % allCategories.length;
+
+    //  다음 카테고리가 계절이면 현재 월과 비교
+    while (isSeasonCategory(allCategories[nextIndex]) && allCategories[nextIndex] != getSeasonCategory()) {
+      log.info("[KeywordSelectionService] 계절 불일치 → 다음 카테고리로 이동: {} → {}", allCategories[nextIndex], allCategories[(nextIndex + 1) % allCategories.length]);
+      nextIndex = (nextIndex + 1) % allCategories.length;
     }
 
-    // 계절이 아니면 전체 순환 (이전 선택 다음 순서)
-    lastIndex = (lastIndex + 1) % allCategories.length;
-    log.info("[KeywordSelectionService] 순차적으로 선택된 카테고리: {}", allCategories[lastIndex]);
-    return allCategories[lastIndex];
+    log.info("[KeywordSelectionService] 최종 선택된 카테고리: {}", allCategories[nextIndex]);
+    return allCategories[nextIndex];
   }
 
-  // 특정 배열에 값이 존재하는지 확인
-  private boolean contains(KeywordCategory[] categories, KeywordCategory category) {
-    for (KeywordCategory c : categories) {
-      if (c == category) return true;
-    }
-    return false;
+  /**
+   *  현재 월에 맞는 계절 카테고리 반환
+   */
+  private KeywordCategory getSeasonCategory() {
+    int month = LocalDate.now().getMonthValue();
+    if (month >= 3 && month <= 5) return KeywordCategory.SPRING;
+    if (month >= 6 && month <= 8) return KeywordCategory.SUMMER;
+    if (month >= 9 && month <= 11) return KeywordCategory.AUTUMN;
+    return KeywordCategory.WINTER;
   }
 
-  // **추후에 Mapstruct 추가 예정**
+  /**
+   *  계절 카테고리인지 여부 확인
+   */
+  private boolean isSeasonCategory(KeywordCategory category) {
+    return category == KeywordCategory.SPRING ||
+           category == KeywordCategory.SUMMER ||
+           category == KeywordCategory.AUTUMN ||
+           category == KeywordCategory.WINTER;
+  }
+
+  /**
+   *  특정 카테고리의 인덱스를 반환
+   */
+  private int indexOfCategory(KeywordCategory category) {
+    for (int i = 0; i < allCategories.length; i++) {
+      if (allCategories[i] == category) return i;
+    }
+    return 0;
+  }
+
+  /**
+   *  추후에 mapstruct로 변환 예정
+   */
   private KeywordRequest toKeywordRequest(Keyword keyword) {
     return KeywordRequest.builder()
         .keyword(keyword.getKeyword())
-        .category(keyword.getCategory())
+        .category(KeywordCategory.valueOf(keyword.getCategory().name()))
         .specifiedDate(keyword.getSpecifiedDate())
-        .providedDate(keyword.getProvidedDate())
         .build();
   }
 }

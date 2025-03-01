@@ -10,7 +10,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 
 @Getter
 @Setter
@@ -26,16 +25,17 @@ public class KeywordFilterRequest {
   }
 
   @Parameter(description = "조회할 키워드 텍스트", required = false)
-  @Builder.Default
-  private String keyword=null;
+  private String keyword;
 
   @Parameter(description = "조회할 키워드 카테고리", required = false)
-  @Builder.Default
-  private KeywordCategory category=null;
+  private String category;
 
   @Parameter(description = "제공일 (YYYY-MM-DD 형식)", required = false)
+  private LocalDate providedDate;
+
+  @Parameter(description = "사용 여부 (true/false)", required = false)
   @Builder.Default
-  private LocalDate providedDate=null;
+  private Boolean isUsed = null;
 
   @Schema(defaultValue = "0")
   @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다.")

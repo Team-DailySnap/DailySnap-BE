@@ -41,11 +41,22 @@ public enum ErrorCode {
   // KEYWORD
 
   KEYWORD_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 키워드를 찾을 수 없습니다."),
+
   UNSUPPORTED_CATEGORY(HttpStatus.BAD_REQUEST, "지원되지 않는 키워드 카테고리입니다."),
+
   KEYWORD_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "키워드 저장에 실패했습니다."),
+
   JSON_SERIALIZATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "키워드 요청 JSON 직렬화 실패"),
-  OPENAI_API_REQUEST_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "OpenAI API 요청에 실패했습니다."),
-  OPENAI_RESPONSE_PARSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "OpenAI 응답 파싱에 실패했습니다.");
+
+  INVALID_OPENAI_RESPONSE(HttpStatus.BAD_REQUEST, "유효하지 않은 OpenAI 응답"),
+
+  OPENAI_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "OpenAI 서비스 이용 불가"),
+
+  KEYWORD_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 존재하는 키워드입니다."),
+
+  INVALID_SPECIFIED_DATE(HttpStatus.BAD_REQUEST, "지정 날짜는 오늘 이후의 날짜여야 합니다."),
+
+  INVALID_DATE_REQUEST(HttpStatus.BAD_REQUEST, "미래 날짜에 대한 키워드 요청은 허용되지 않습니다.");
 
 
   private final HttpStatus status;

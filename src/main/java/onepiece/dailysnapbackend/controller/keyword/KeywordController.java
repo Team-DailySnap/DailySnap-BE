@@ -39,10 +39,6 @@ public class KeywordController implements KeywordControllerDocs {
   public ResponseEntity<Page<KeywordFilterResponse>> filteredKeywords(
       @AuthenticationPrincipal CustomUserDetails userDetails,
       @Valid @ParameterObject @ModelAttribute KeywordFilterRequest request) {
-    //return ResponseEntity.ok(keywordService.filteredKeywords (request));
-    log.info("컨트롤러 진입: userDetails={}, request={}", userDetails, request);
-    Page<KeywordFilterResponse> result = keywordService.filteredKeywords(request);
-    log.info("컨트롤러 완료: resultSize={}", result.getTotalElements());
-    return ResponseEntity.ok(result);
+    return ResponseEntity.ok(keywordService.filteredKeywords (request));
   }
 }
