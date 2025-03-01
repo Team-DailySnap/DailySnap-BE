@@ -27,7 +27,7 @@ public class Report {
 
   // 신고된 사진 게시물 ID
   @Indexed
-  private UUID reportedPhotoId;
+  private UUID reportedPostId;
 
   // 신고 카테고리
   private ReportCategory reportCategory;
