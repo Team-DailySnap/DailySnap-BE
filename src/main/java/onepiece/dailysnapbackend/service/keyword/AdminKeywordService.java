@@ -21,31 +21,31 @@ public class AdminKeywordService {
   private final KeywordRepository keywordRepository;
 
   /**
-   * 🔹 특정 날짜에 제공할 키워드 추가 (관리자 전용)
+   *  특정 날짜에 제공할 키워드 추가 (관리자 전용)
    */
   @Transactional
   public KeywordResponse addKeyword(KeywordRequest request) {
     // 입력 유효성 검사
     if (request.getKeyword() == null || request.getKeyword().trim().isEmpty()) {
-      log.error("[AdminKeywordService] 키워드가 null이거나 빈 값: request={}", request);
+      log.error("키워드가 null이거나 빈 값: request={}", request);
       throw new CustomException(ErrorCode.INVALID_REQUEST);
     }
 
     if (request.getSpecifiedDate() == null) {
-      log.error("[AdminKeywordService] specifiedDate가 null: request={}", request);
+      log.error("specifiedDate가 null: request={}", request);
       throw new CustomException(ErrorCode.INVALID_REQUEST);
     }
 
     // specifiedDate가 오늘 이후인지 확인
     LocalDate today = LocalDate.now();
     if (!request.getSpecifiedDate().isAfter(today)) {
-      log.error("[AdminKeywordService] 지정 날짜가 오늘 이전: specifiedDate={}", request.getSpecifiedDate());
+      log.error("지정 날짜가 오늘 이전: specifiedDate={}", request.getSpecifiedDate());
       throw new CustomException(ErrorCode.INVALID_SPECIFIED_DATE);
     }
 
     // 중복 키워드 체크
     if (keywordRepository.existsByKeyword(request.getKeyword())) {
-      log.warn("[AdminKeywordService] 이미 존재하는 키워드: {}", request.getKeyword());
+      log.error("이미 존재하는 키워드: {}", request.getKeyword());
       throw new CustomException(ErrorCode.KEYWORD_ALREADY_EXISTS);
     }
 
@@ -56,12 +56,12 @@ public class AdminKeywordService {
         .isUsed(false)
         .build();
 
-    log.debug("[AdminKeywordService] 저장 전 키워드 객체: keyword={}, specifiedDate={}",
+    log.debug("저장 전 키워드 객체: keyword={}, specifiedDate={}",
         keywordEntity.getKeyword(), keywordEntity.getSpecifiedDate());
 
     Keyword savedKeyword = keywordRepository.save(keywordEntity);
 
-    log.info("[AdminKeywordService] '{}' 날짜에 제공될 키워드 '{}' 추가 완료, savedId={}",
+    log.info("'{}' 날짜에 제공될 키워드 '{}' 추가 완료, savedId={}",
         savedKeyword.getSpecifiedDate(), savedKeyword.getKeywordId());
 
     return KeywordResponse.builder()
@@ -79,11 +79,11 @@ public class AdminKeywordService {
   @Transactional
   public void deleteKeyword(String keyword) {
     if (!keywordRepository.existsByKeyword(keyword)) {
-      log.error("[AdminKeywordService] 삭제 요청한 키워드를 찾을 수 없음: {}", keyword);
+      log.error("삭제 요청한 키워드를 찾을 수 없음: {}", keyword);
       throw new CustomException(ErrorCode.KEYWORD_NOT_FOUND);
     }
 
     keywordRepository.deleteKeywordByKeyword(keyword);
-    log.info("[AdminKeywordService] 삭제된 키워드: {}", keyword);
+    log.info("삭제된 키워드: {}", keyword);
   }
 }

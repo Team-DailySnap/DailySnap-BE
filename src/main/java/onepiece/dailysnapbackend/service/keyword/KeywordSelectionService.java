@@ -31,44 +31,44 @@ public class KeywordSelectionService {
   public KeywordRequest getTodayKeyword() {
     LocalDate today = LocalDate.now();
     LocalDate yesterday = today.minusDays(1);
-    log.info("[KeywordSelectionService] 오늘의 키워드 조회 시작: date={}", today);
+    log.info("오늘의 키워드 조회 시작: date={}", today);
 
     // ADMIN_SET 키워드 확인 (특정 날짜 키워드 우선 제공)
-    Keyword adminKeyword = keywordRepository.findFirstByCategoryAndSpecifiedDate(ADMIN_SET, today).orElse(null);
+    Keyword adminKeyword = keywordRepository.findFirstByCategoryAndSpecifiedDate(ADMIN_SET, today)
+        .orElseGet(() -> null);
     if (adminKeyword != null && !adminKeyword.isUsed()) {
-      log.info("[KeywordSelectionService] ADMIN_SET 키워드 발견: keyword={}", adminKeyword.getKeyword());
+      log.info("ADMIN_SET 키워드 발견: keyword={}", adminKeyword.getKeyword());
       markKeywordAsUsed(adminKeyword);
       return toKeywordRequest(adminKeyword);
     }
 
     // 어제 제공된 키워드 확인 → 그 다음 카테고리 선택
     KeywordCategory selectedCategory = getNextCategory(yesterday);
-    log.info("[KeywordSelectionService] 선택된 카테고리: category={}", selectedCategory);
+    log.info("선택된 카테고리: category={}", selectedCategory);
 
     // 선택된 카테고리에서 미사용 키워드 조회
-    Keyword unusedKeyword = keywordRepository.findFirstByCategoryAndIsUsedFalse(selectedCategory).orElse(null);
-    if (unusedKeyword == null) {
-      log.warn("[KeywordSelectionService] 사용 가능한 키워드 없음, OpenAI로 새 키워드 생성: category={}", selectedCategory);
-      openAIKeywordService.generateKeywords(selectedCategory);
-      unusedKeyword = keywordRepository.findFirstByCategoryAndIsUsedFalse(selectedCategory).orElse(null);
-    }
+    Keyword unusedKeyword = keywordRepository.findFirstByCategoryAndIsUsedFalse(selectedCategory)
+        .orElseGet(() -> {
+          log.warn("사용 가능한 키워드 없음, OpenAI로 새 키워드 생성: category={}", selectedCategory);
+          openAIKeywordService.generateKeywords(selectedCategory);
+          return keywordRepository.findFirstByCategoryAndIsUsedFalse(selectedCategory)
+              .orElseThrow(() -> {
+                log.error("키워드 조회 실패: 사용 가능한 키워드 없음");
+                return new CustomException(ErrorCode.KEYWORD_NOT_FOUND);
+              });
+        });
 
-    if (unusedKeyword != null) {
-      log.info("[KeywordSelectionService] 선택된 키워드: keyword={}", unusedKeyword.getKeyword());
-      markKeywordAsUsed(unusedKeyword);
-      return toKeywordRequest(unusedKeyword);
-    }
-
-    log.error("[KeywordSelectionService] 키워드 조회 실패: 사용 가능한 키워드 없음");
-    throw new CustomException(ErrorCode.KEYWORD_NOT_FOUND);
+    log.info("선택된 키워드: keyword={}", unusedKeyword.getKeyword());
+    markKeywordAsUsed(unusedKeyword);
+    return toKeywordRequest(unusedKeyword);
   }
 
   @Transactional
   public void markKeywordAsUsed(Keyword keyword) {
     keyword.setUsed(true);
     keyword.setProvidedDate(LocalDate.now());
-    keywordRepository.saveAndFlush(keyword);
-    log.info("[KeywordSelectionService] 키워드 사용 처리 완료: keyword={}, isUsed={}, providedDate={}",
+    keywordRepository.save(keyword);
+    log.info("키워드 사용 처리 완료: keyword={}, isUsed={}, providedDate={}",
         keyword.getKeyword(), keyword.isUsed(), keyword.getProvidedDate());
   }
 
@@ -79,11 +79,12 @@ public class KeywordSelectionService {
    */
   private KeywordCategory getNextCategory(LocalDate yesterday) {
     // 어제 제공된 키워드 조회
-    Keyword lastKeyword = keywordRepository.findFirstByProvidedDate(yesterday).orElse(null);
+    Keyword lastKeyword = keywordRepository.findFirstByProvidedDate(yesterday)
+        .orElseGet(() -> null);
 
     // 어제 키워드가 없으면 기본적으로 현재 월의 계절 카테고리를 선택
     if (lastKeyword == null) {
-      log.info("[KeywordSelectionService] 어제 키워드 없음 → 현재 시즌 카테고리 선택");
+      log.info("어제 키워드 없음 → 현재 시즌 카테고리 선택");
       return getSeasonCategory();
     }
 
@@ -93,11 +94,11 @@ public class KeywordSelectionService {
 
     //  다음 카테고리가 계절이면 현재 월과 비교
     while (isSeasonCategory(allCategories[nextIndex]) && allCategories[nextIndex] != getSeasonCategory()) {
-      log.info("[KeywordSelectionService] 계절 불일치 → 다음 카테고리로 이동: {} → {}", allCategories[nextIndex], allCategories[(nextIndex + 1) % allCategories.length]);
+      log.info("계절 불일치 → 다음 카테고리로 이동: {} → {}", allCategories[nextIndex], allCategories[(nextIndex + 1) % allCategories.length]);
       nextIndex = (nextIndex + 1) % allCategories.length;
     }
 
-    log.info("[KeywordSelectionService] 최종 선택된 카테고리: {}", allCategories[nextIndex]);
+    log.info("최종 선택된 카테고리: {}", allCategories[nextIndex]);
     return allCategories[nextIndex];
   }
 
@@ -138,7 +139,7 @@ public class KeywordSelectionService {
   private KeywordRequest toKeywordRequest(Keyword keyword) {
     return KeywordRequest.builder()
         .keyword(keyword.getKeyword())
-        .category(KeywordCategory.valueOf(keyword.getCategory().name()))
+        .category(keyword.getCategory())
         .specifiedDate(keyword.getSpecifiedDate())
         .build();
   }

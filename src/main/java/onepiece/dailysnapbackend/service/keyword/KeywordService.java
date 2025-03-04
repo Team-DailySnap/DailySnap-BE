@@ -10,9 +10,14 @@ import onepiece.dailysnapbackend.object.dto.KeywordFilterResponse;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
 import onepiece.dailysnapbackend.object.postgres.Keyword;
 import onepiece.dailysnapbackend.repository.postgres.KeywordRepository;
+import onepiece.dailysnapbackend.util.CommonUtil;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,12 +31,9 @@ public class KeywordService {
 
   /**
    *  키워드 필터링 및 조회
-   * - 특정 날짜의 키워드를 조회하거나, 전체 키워드를 필터링하여 반환
    */
   @Transactional
   public Page<KeywordFilterResponse> filteredKeywords(KeywordFilterRequest request) {
-    log.info("[KeywordService] 키워드 필터링 시작: providedDate={}, keyword={}, category={}",
-        request.getProvidedDate(), request.getKeyword(), request.getCategory());
 
     Pageable pageable = createPageable(request);
     LocalDate providedDate = request.getProvidedDate();
@@ -54,26 +56,23 @@ public class KeywordService {
   }
 
   /**
-   *  특정 날짜(`providedDate`) 필터링 처리
-   * - 미래 날짜 요청이면 예외 반환
-   * - 해당 날짜의 키워드가 존재하면 반환
-   * - 과거 키워드가 없으면 빈 페이지 반환
-   * - 오늘 키워드가 없으면 새 키워드 생성
+   *  특정 날짜(providedDate) 필터링 처리
    */
   private Page<KeywordFilterResponse> handleProvidedDateFiltering(LocalDate providedDate, LocalDate today, Pageable pageable) {
     if (providedDate.isAfter(today)) {
-      log.warn("[KeywordService] 미래 날짜({}) 조회 불가", providedDate);
+      log.warn("미래 날짜({}) 조회 불가", providedDate);
       throw new CustomException(ErrorCode.INVALID_DATE_REQUEST);
     }
 
-    Keyword existingKeyword = keywordRepository.findFirstByProvidedDate(providedDate).orElse(null);
+    Keyword existingKeyword = keywordRepository.findFirstByProvidedDate(providedDate)
+        .orElseGet(() -> null);
     if (existingKeyword != null) {
-      log.info("[KeywordService] providedDate={}에 키워드 존재: keyword={}", providedDate, existingKeyword.getKeyword());
+      log.info("providedDate={}에 키워드 존재: keyword={}", providedDate, existingKeyword.getKeyword());
       return wrapKeywordAsPage(existingKeyword, pageable);
     }
 
     if (providedDate.isBefore(today)) {
-      log.info("[KeywordService] 과거 날짜({})에 키워드 없음", providedDate);
+      log.info("과거 날짜({})에 키워드 없음", providedDate);
       return Page.empty(pageable);
     }
 
@@ -82,46 +81,42 @@ public class KeywordService {
 
   /**
    *  필터링 수행 (providedDate가 없는 경우)
-   * - 키워드, 카테고리, 사용 여부를 기반으로 필터링
    */
   private Page<KeywordFilterResponse> performFiltering(KeywordFilterRequest request, Pageable pageable) {
-    Page<Keyword> page = keywordRepository.filteredKeyword(
-        request.getKeyword(),
-        request.getCategory(),
-        null,
-        request.getIsUsed(),
-        pageable
-    );
+    String keyword = CommonUtil.nvl(request.getKeyword(), "");
+    String category = CommonUtil.nvl(request.getCategory(), "");
+    String providedDate = CommonUtil.nvl(request.getProvidedDate() != null ? request.getProvidedDate().toString() : "", "");
+    String isUsed = CommonUtil.nvl(request.getIsUsed() != null ? request.getIsUsed().toString() : "", "");
 
+    Page<Keyword> page = keywordRepository.filteredKeyword(keyword, category, providedDate, isUsed, pageable);
     if (page.isEmpty()) {
-      log.warn("[KeywordService] 필터링 결과 없음: keyword={}, category={}", request.getKeyword(), request.getCategory());
+      log.error("필터링 결과 없음: keyword={}, category={}", keyword, category);
       return Page.empty(pageable);
     }
 
-    log.info("[KeywordService] 필터링 완료: totalElements={}", page.getTotalElements());
+    log.info("필터링 완료: totalElements={}", page.getTotalElements());
     return page.map(this::toKeywordFilterResponse);
   }
 
   /**
    *  오늘 날짜에 키워드가 없는 경우 새 키워드 생성
-   * - `KeywordSelectionService`를 통해 키워드 자동 생성
    */
   @Transactional
   public Page<KeywordFilterResponse> generateTodayKeywordPage(Pageable pageable) {
-    log.info("[KeywordService] 오늘 날짜에 키워드가 없음 → 새 키워드 생성 시도");
+    log.info("오늘 날짜에 키워드가 없음 → 새 키워드 생성 시도");
     KeywordRequest newKeyword = keywordSelectionService.getTodayKeyword();
-    log.info("[KeywordService] 새 키워드 생성 완료: keyword={}", newKeyword.getKeyword());
+    log.info("새 키워드 생성 완료: keyword={}", newKeyword.getKeyword());
 
     Page<Keyword> page = keywordRepository.filteredKeyword(
         newKeyword.getKeyword(),
         newKeyword.getCategory().name(),
-        LocalDate.now(),
-        null,
+        LocalDate.now().toString(),
+        "true",
         pageable
     );
 
     if (page.isEmpty()) {
-      log.warn("[KeywordService] 생성된 키워드 조회 실패: keyword={}", newKeyword.getKeyword());
+      log.error("생성된 키워드 조회 실패: keyword={}", newKeyword.getKeyword());
       return Page.empty(pageable);
     }
 

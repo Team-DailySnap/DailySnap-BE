@@ -27,19 +27,19 @@ public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
 
   boolean existsByKeyword(String keyword);
 
+
   @Query(value = """
     SELECT k.* FROM keyword k 
-    WHERE (nvl(:keyword, '') = '' OR k.keyword ILIKE CONCAT('%', TRIM(:keyword), '%')) 
-      AND (nvl(:category, '') = '' OR k.category = CAST(:category AS text)) 
-      AND (nvl(:providedDate, '') = '' OR k.provided_date IS NULL OR k.provided_date = CAST(:providedDate AS DATE))
-      AND (nvl(:isUsed, '') = '' OR k.is_used = :isUsed)
-    ORDER BY k.created_date DESC
+    WHERE (:keyword = '' OR k.keyword ILIKE CONCAT('%', TRIM(:keyword), '%')) 
+      AND (:category = '' OR k.category = :category) 
+      AND (:providedDate = '' OR k.provided_date = CAST(:providedDate AS DATE))
+      AND (:isUsed = '' OR k.is_used = CAST(:isUsed AS BOOLEAN))
     """, nativeQuery = true)
   Page<Keyword> filteredKeyword(
       @Param("keyword") String keyword,
       @Param("category") String category,
-      @Param("providedDate") LocalDate providedDate,
-      @Param("isUsed") Boolean isUsed,
+      @Param("providedDate") String providedDate,
+      @Param("isUsed") String isUsed,
       Pageable pageable);
 
 }
