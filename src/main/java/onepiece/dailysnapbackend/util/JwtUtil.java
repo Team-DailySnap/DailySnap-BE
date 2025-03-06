@@ -10,12 +10,16 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
 import onepiece.dailysnapbackend.service.CustomUserDetailsService;
+import onepiece.dailysnapbackend.util.exception.CustomException;
+import onepiece.dailysnapbackend.util.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -26,6 +30,7 @@ import org.springframework.stereotype.Component;
 public class JwtUtil {
 
   private final CustomUserDetailsService customUserDetailsService;
+  private final RedisTemplate<String, String> redisTemplate;
 
   @Value("${jwt.secret-key}")
   private String secretKey;
@@ -41,6 +46,8 @@ public class JwtUtil {
 
   private static final String ACCESS_CATEGORY = "access";
   private static final String REFRESH_CATEGORY = "refresh";
+  private static final String BLACKLIST_KEY = "BL:";
+  private static final String BLACKLIST_VALUE = "blacklist";
 
   // 토큰에서 username 파싱
   public String getUsername(String token) {
@@ -138,6 +145,10 @@ public class JwtUtil {
           .verifyWith(getSignKey())
           .build()
           .parseSignedClaims(token);
+      if (isTokenBlacklisted(token)) {
+        log.error("액세스 토큰이 블랙리스트에 등록되어 있습니다. accessToken={}", token);
+        throw new CustomException(ErrorCode.TOKEN_BLACKLISTED);
+      }
       log.info("JWT 토큰이 유효합니다.");
       return true;
     } catch (ExpiredJwtException e) {
@@ -186,6 +197,19 @@ public class JwtUtil {
   }
 
   /**
+   * 액세스 토큰의 남은 만료 시간 반환
+   *
+   * @param token JWT 액세스 토큰
+   * @return 남은 만료 시간 (밀리초)
+   */
+  public long getAccessTokenExpirationTime(String token) {
+    Claims claims = getClaims(token);
+    Date expirationDate = claims.getExpiration();
+    long remainingTime = expirationDate.getTime() - System.currentTimeMillis();
+    return Math.max(remainingTime, 0);
+  }
+
+  /**
    * 리프레시 토큰 만료 시간 반환
    *
    * @return 리프레시 토큰 만료 시간 (밀리초 단위)
@@ -215,5 +239,23 @@ public class JwtUtil {
     log.info("JWT에서 인증정보 파싱: username={}", username);
     CustomUserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
     return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+  }
+
+  // access token 블랙리스트에 등록
+  public void addAccessTokenToBlacklist(String accessToken) {
+    long expiration = getAccessTokenExpirationTime(accessToken);
+    redisTemplate.opsForValue().set(
+        BLACKLIST_KEY + accessToken,
+        BLACKLIST_VALUE,
+        expiration,
+        TimeUnit.MILLISECONDS
+    );
+    log.info("블랙리스트에 액세스 토큰을 추가했습니다. accessToken={}", accessToken);
+  }
+
+  // 해당 토큰이 블랙리스트에 있는지 여부
+  public Boolean isTokenBlacklisted(String token) {
+    String key = BLACKLIST_KEY + token;
+    return redisTemplate.hasKey(key);
   }
 }
