@@ -32,6 +32,8 @@ public enum ErrorCode {
 
   REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "리프레시 토큰을 찾을 수 없습니다."),
 
+  TOKEN_BLACKLISTED(HttpStatus.UNAUTHORIZED, "블랙리스트에 등록된 토큰입니다."),
+
   DUPLICATE_USERNAME(HttpStatus.BAD_REQUEST, "이미 가입된 회원입니다"),
 
   // MEMBER

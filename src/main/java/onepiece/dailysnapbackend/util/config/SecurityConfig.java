@@ -4,13 +4,14 @@ package onepiece.dailysnapbackend.util.config;
 import java.util.Arrays;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
-import onepiece.dailysnapbackend.repository.mongo.RefreshTokenRepository;
 import onepiece.dailysnapbackend.service.CustomUserDetailsService;
 import onepiece.dailysnapbackend.util.JwtUtil;
+import onepiece.dailysnapbackend.util.filter.CustomLogoutHandler;
 import onepiece.dailysnapbackend.util.filter.LoginFilter;
 import onepiece.dailysnapbackend.util.filter.TokenAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -32,7 +33,8 @@ public class SecurityConfig {
   private final JwtUtil jwtUtil;
   private final CustomUserDetailsService customUserDetailsService;
   private final AuthenticationConfiguration authenticationConfiguration;
-  private final RefreshTokenRepository refreshTokenRepository;
+  private final RedisTemplate<String, String> redisTemplate;
+  private final CustomLogoutHandler customLogoutHandler;
 
   /**
    * 허용된 CORS Origin 목록
@@ -68,6 +70,7 @@ public class SecurityConfig {
         )
         .logout(logout -> logout
             .logoutUrl("/logout") // "/logout" 경로로 접근 시 로그아웃
+            .addLogoutHandler(customLogoutHandler)
             .logoutSuccessUrl("/login") // 로그아웃 성공 후 로그인 창 이동
             .invalidateHttpSession(true)
         )
@@ -81,7 +84,7 @@ public class SecurityConfig {
         .addFilterAt(
             new LoginFilter(jwtUtil,
                 authenticationManager(authenticationConfiguration),
-                refreshTokenRepository),
+                redisTemplate),
             UsernamePasswordAuthenticationFilter.class
         )
         .build();
