@@ -48,9 +48,17 @@ public enum ErrorCode {
 
   INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 파일 형식입니다."),
 
+  POST_NOT_FOUND(HttpStatus.BAD_REQUEST, "게시물을 찾을 수 없습니다."),
+
   // KEYWORD
 
-  KEYWORD_NOT_FOUND(HttpStatus.BAD_REQUEST, "키워드를 찾을 수 없습니다.");
+  KEYWORD_NOT_FOUND(HttpStatus.BAD_REQUEST, "키워드를 찾을 수 없습니다."),
+
+  // LIKE
+
+  ALREADY_LIKED(HttpStatus.BAD_REQUEST, "이미 좋아요를 눌렀습니다."),
+
+  LIKE_HISTORY_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "좋아요 내역 저장에 실패했습니다.");
 
   private final HttpStatus status;
   private final String message;

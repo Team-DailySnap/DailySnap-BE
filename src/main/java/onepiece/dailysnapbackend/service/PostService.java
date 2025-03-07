@@ -1,9 +1,11 @@
 package onepiece.dailysnapbackend.service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import onepiece.dailysnapbackend.object.dto.PostDetailRequest;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
 import onepiece.dailysnapbackend.object.dto.PostFilteredResponse;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
@@ -35,6 +37,7 @@ public class PostService {
   private final PostRepository postRepository;
   private final KeywordRepository keywordRepository;
   private final ImageRepository imageRepository;
+  private final RedisLockService redisLockService;
 
   private static final int MAX_IMAGE_COUNT = 10;
 
@@ -57,6 +60,7 @@ public class PostService {
         .member(member)
         .keyword(keyword)
         .content(request.getContent())
+        .viewCount(0)
         .likeCount(0)
         .location(request.getLocation())
         .build();
@@ -81,6 +85,8 @@ public class PostService {
         .keyword(post.getKeyword())
         .images(imageEntities)
         .content(post.getContent())
+        .viewCount(post.getViewCount())
+        .likeCount(post.getLikeCount())
         .location(post.getLocation())
         .build();
   }
@@ -122,8 +128,37 @@ public class PostService {
         .keyword(post.getKeyword())
         .images(imageRepository.findByPost(post))
         .content(post.getContent())
+        .viewCount(post.getViewCount())
         .likeCount(post.getLikeCount())
         .location(post.getLocation())
         .build());
+  }
+
+  // 게시물 상세 조회
+  @Transactional
+  public PostResponse getPostDetails(PostDetailRequest request) {
+    UUID postId = request.getPostId();
+    String lockKey = "post_lock:" + postId;
+
+    Post post = postRepository.findById(postId)
+        .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+    Integer updatedViewCount = redisLockService.executeWithLock(lockKey, () -> {
+      post.setViewCount(post.getViewCount() + 1);
+      postRepository.save(post);
+      log.info("{} 게시물 조회수 증가: viewCount={}", postId, post.getViewCount());
+      return post.getViewCount();
+    });
+
+    List<Image> images = imageRepository.findByPost(post);
+
+    return PostResponse.builder()
+        .keyword(post.getKeyword())
+        .images(images)
+        .content(post.getContent())
+        .viewCount(updatedViewCount)
+        .likeCount(post.getLikeCount())
+        .location(post.getLocation())
+        .build();
   }
 }

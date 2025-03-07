@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
+import onepiece.dailysnapbackend.object.dto.PostDetailRequest;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
 import onepiece.dailysnapbackend.object.dto.PostFilteredResponse;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
@@ -50,5 +51,12 @@ public class PostController implements PostControllerDocs {
       @AuthenticationPrincipal CustomUserDetails userDetails,
       @Valid @RequestBody PostFilteredRequest request) {
     return ResponseEntity.ok(postService.getFilteredPosts(request));
+  }
+
+  @GetMapping("/detail")
+  @LogMonitoringInvocation
+  public ResponseEntity<PostResponse> detailPost(
+      @RequestBody PostDetailRequest request) {
+    return ResponseEntity.ok(postService.getPostDetails(request));
   }
 }
