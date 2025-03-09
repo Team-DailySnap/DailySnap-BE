@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
-import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,16 +23,16 @@ public class KeywordFilterRequest {
     this.sortDirection = "DESC";
   }
 
-  @Parameter(description = "조회할 키워드 텍스트", required = false)
+  @Schema(defaultValue="바다")
   private String keyword;
 
-  @Parameter(description = "조회할 키워드 카테고리", required = false)
+  @Schema(defaultValue="SUMMER")
   private String category;
 
-  @Parameter(description = "제공일 (YYYY-MM-DD 형식)", required = false)
-  private LocalDate providedDate;
+  @Pattern(regexp = "\\d{4}-\\d{2}-\\d{2}", message = "'YYYY-MM-DD' 형식이어야 합니다.")
+  @Schema(defaultValue = "2025-03-07")
+  private String providedDate;
 
-  @Parameter(description = "사용 여부 (true/false)", required = false)
   @Builder.Default
   private Boolean isUsed = null;
 
@@ -43,7 +42,7 @@ public class KeywordFilterRequest {
   @Parameter(description = "페이지 번호 (0부터 시작)", required = false)
   private Integer pageNumber;
 
-  @Schema(defaultValue = "30")
+  @Schema(defaultValue = "100")
   @Min(value = 1, message = "페이지 사이즈는 1 이상이어야 합니다.")
   @Max(value = 100, message = "페이지 사이즈는 100을 초과할 수 없습니다.")
   @Parameter(description = "페이지 크기", required = false)

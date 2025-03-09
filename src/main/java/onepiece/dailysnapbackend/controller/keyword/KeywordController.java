@@ -9,12 +9,11 @@ import onepiece.dailysnapbackend.object.dto.KeywordFilterRequest;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterResponse;
 import onepiece.dailysnapbackend.service.keyword.KeywordService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
-import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,11 +33,11 @@ public class KeywordController implements KeywordControllerDocs {
    * 필터링 조건(키워드 텍스트, 카테고리, 날짜)을 사용하여 키워드 목록을 Page로 반환.
    */
   @Override
-  @GetMapping
+  @PostMapping
   @LogMonitoringInvocation
   public ResponseEntity<Page<KeywordFilterResponse>> filteredKeywords(
       @AuthenticationPrincipal CustomUserDetails userDetails,
-      @Valid @ParameterObject @ModelAttribute KeywordFilterRequest request) {
+      @Valid @RequestBody KeywordFilterRequest request) {
     return ResponseEntity.ok(keywordService.filteredKeywords (request));
   }
 }

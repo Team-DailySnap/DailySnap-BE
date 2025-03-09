@@ -15,11 +15,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
 
-  Optional<Keyword> findFirstByCategoryAndSpecifiedDate(KeywordCategory category, LocalDate specifiedDate);
+  Optional<Keyword> findByCategoryAndSpecifiedDate(KeywordCategory category, LocalDate specifiedDate);
 
   Optional<Keyword> findFirstByCategoryAndIsUsedFalse(KeywordCategory category);
 
-  Optional<Keyword> findFirstByProvidedDate(LocalDate providedDate);
+  Optional<Keyword> findByProvidedDate(LocalDate providedDate);
 
   long countByCategoryAndIsUsedFalse(@Param("category") String category);
 

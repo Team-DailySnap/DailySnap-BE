@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import onepiece.dailysnapbackend.object.constants.KeywordCategory;
+import onepiece.dailysnapbackend.mapper.KeywordMapper;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterRequest;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterResponse;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,7 @@ public class KeywordService {
 
   private final KeywordRepository keywordRepository;
   private final KeywordSelectionService keywordSelectionService;
+  private final KeywordMapper keywordMapper = KeywordMapper.INSTANCE;
 
   /**
    *  키워드 필터링 및 조회
@@ -36,7 +38,7 @@ public class KeywordService {
   public Page<KeywordFilterResponse> filteredKeywords(KeywordFilterRequest request) {
 
     Pageable pageable = createPageable(request);
-    LocalDate providedDate = request.getProvidedDate();
+    LocalDate providedDate = StringUtils.hasText(request.getProvidedDate()) ? LocalDate.parse(request.getProvidedDate()) : null;
     LocalDate today = LocalDate.now();
 
     return (providedDate != null)
@@ -60,11 +62,11 @@ public class KeywordService {
    */
   private Page<KeywordFilterResponse> handleProvidedDateFiltering(LocalDate providedDate, LocalDate today, Pageable pageable) {
     if (providedDate.isAfter(today)) {
-      log.warn("미래 날짜({}) 조회 불가", providedDate);
+      log.error("미래 날짜({}) 조회 불가", providedDate);
       throw new CustomException(ErrorCode.INVALID_DATE_REQUEST);
     }
 
-    Keyword existingKeyword = keywordRepository.findFirstByProvidedDate(providedDate)
+    Keyword existingKeyword = keywordRepository.findByProvidedDate(providedDate)
         .orElseGet(() -> null);
     if (existingKeyword != null) {
       log.info("providedDate={}에 키워드 존재: keyword={}", providedDate, existingKeyword.getKeyword());
@@ -85,7 +87,7 @@ public class KeywordService {
   private Page<KeywordFilterResponse> performFiltering(KeywordFilterRequest request, Pageable pageable) {
     String keyword = CommonUtil.nvl(request.getKeyword(), "");
     String category = CommonUtil.nvl(request.getCategory(), "");
-    String providedDate = CommonUtil.nvl(request.getProvidedDate() != null ? request.getProvidedDate().toString() : "", "");
+    String providedDate = CommonUtil.nvl(request.getProvidedDate(), "");
     String isUsed = CommonUtil.nvl(request.getIsUsed() != null ? request.getIsUsed().toString() : "", "");
 
     Page<Keyword> page = keywordRepository.filteredKeyword(keyword, category, providedDate, isUsed, pageable);
@@ -95,7 +97,7 @@ public class KeywordService {
     }
 
     log.info("필터링 완료: totalElements={}", page.getTotalElements());
-    return page.map(this::toKeywordFilterResponse);
+    return page.map(keywordMapper::toKeywordFilterResponse);
   }
 
   /**
@@ -120,24 +122,14 @@ public class KeywordService {
       return Page.empty(pageable);
     }
 
-    return page.map(this::toKeywordFilterResponse);
+    return page.map(keywordMapper::toKeywordFilterResponse);
   }
 
   /**
    *  단일 키워드를 페이지로 변환
    */
   private Page<KeywordFilterResponse> wrapKeywordAsPage(Keyword keyword, Pageable pageable) {
-    return new PageImpl<>(Collections.singletonList(toKeywordFilterResponse(keyword)), pageable, 1);
+    return new PageImpl<>(Collections.singletonList(keywordMapper.toKeywordFilterResponse(keyword)), pageable, 1);
   }
 
-  /**
-   *  추후에 mapstruct로 변환 예정
-   */
-  private KeywordFilterResponse toKeywordFilterResponse(Keyword keyword) {
-    return KeywordFilterResponse.builder()
-        .keyword(keyword.getKeyword())
-        .category(KeywordCategory.valueOf(keyword.getCategory().name()))
-        .providedDate(keyword.getProvidedDate())
-        .build();
-  }
 }
