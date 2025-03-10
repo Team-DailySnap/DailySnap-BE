@@ -1,7 +1,9 @@
 package onepiece.dailysnapbackend.object.constants;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+@AllArgsConstructor
 @Getter
 public enum KeywordCategory {
   ADMIN_SET("관리자 지정"),   // 특정 날짜에 지정한 키워드
@@ -16,12 +18,4 @@ public enum KeywordCategory {
 
 
   private final String prompt;
-
-  KeywordCategory(String prompt) {
-    this.prompt = prompt;
-  }
-
-  public String getPrompt() {
-    return prompt;
-  }
 }

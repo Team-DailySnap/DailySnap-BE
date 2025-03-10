@@ -6,9 +6,10 @@ import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import onepiece.dailysnapbackend.mapper.KeywordMapper;
+import onepiece.dailysnapbackend.mapper.EntityMapper;
 import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
 import onepiece.dailysnapbackend.object.postgres.Keyword;
@@ -24,7 +25,7 @@ public class KeywordSelectionService {
 
   private final KeywordRepository keywordRepository;
   private final OpenAIKeywordService openAIKeywordService;
-  private final KeywordMapper keywordMapper = KeywordMapper.INSTANCE;
+  private final EntityMapper entityMapper;
 
   private static final List<KeywordCategory> allCategories = Arrays.stream(KeywordCategory.values())
       .filter(category -> category != KeywordCategory.ADMIN_SET)
@@ -37,12 +38,14 @@ public class KeywordSelectionService {
     log.info("오늘의 키워드 조회 시작: date={}", today);
 
     // ADMIN_SET 키워드 확인 (특정 날짜 키워드 우선 제공)
-    Keyword adminKeyword = keywordRepository.findByCategoryAndSpecifiedDate(ADMIN_SET, today)
-        .orElseGet(() -> null);
-    if (adminKeyword != null && !adminKeyword.isUsed()) {
-      log.info("ADMIN_SET 키워드 발견: keyword={}", adminKeyword.getKeyword());
-      markKeywordAsUsed(adminKeyword);
-      return toKeywordRequest(adminKeyword);
+    Optional<Keyword> optionalAdminKeyword = keywordRepository.findByCategoryAndSpecifiedDate(ADMIN_SET, today);
+    if (optionalAdminKeyword.isPresent()) {
+      Keyword adminKeyword = optionalAdminKeyword.get();
+      if (!adminKeyword.isUsed()) {
+        log.info("ADMIN_SET 키워드 발견: keyword={}", adminKeyword.getKeyword());
+        markKeywordAsUsed(adminKeyword);
+        return toKeywordRequest(adminKeyword);
+      }
     }
 
     // 어제 제공된 키워드 확인 → 그 다음 카테고리 선택
@@ -82,20 +85,18 @@ public class KeywordSelectionService {
    */
   private KeywordCategory getNextCategory(LocalDate yesterday) {
     // 어제 제공된 키워드 조회
-    Keyword lastKeyword = keywordRepository.findByProvidedDate(yesterday)
-        .orElseGet(() -> null);
-
-    // 어제 키워드가 없으면 기본적으로 현재 월의 계절 카테고리를 선택
-    if (lastKeyword == null) {
+    Optional<Keyword> optionalLastKeyword = keywordRepository.findByProvidedDate(yesterday);
+    if (!optionalLastKeyword.isPresent()) {
       log.info("어제 키워드 없음 → 현재 시즌 카테고리 선택");
       return getSeasonCategory();
     }
 
-    //  어제 사용된 카테고리 찾기
+    // 어제 사용된 카테고리 찾기
+    Keyword lastKeyword = optionalLastKeyword.get();
     int lastIndex = indexOfCategory(lastKeyword.getCategory());
     int nextIndex = (lastIndex + 1) % allCategories.size();
 
-    //  다음 카테고리가 계절이면 현재 월과 비교
+    // 다음 카테고리가 계절이면 현재 월과 비교
     while (isSeasonCategory(allCategories.get(nextIndex)) && allCategories.get(nextIndex) != getSeasonCategory()) {
       log.info("계절 불일치 → 다음 카테고리로 이동: {} → {}", allCategories.get(nextIndex), allCategories.get((nextIndex + 1) % allCategories.size()));
       nextIndex = (nextIndex + 1) % allCategories.size();
@@ -140,6 +141,6 @@ public class KeywordSelectionService {
    *  추후에 mapstruct로 변환 예정
    */
   private KeywordRequest toKeywordRequest(Keyword keyword) {
-    return keywordMapper.toKeywordRequest(keyword);
+    return entityMapper.toKeywordRequest(keyword);
   }
 }

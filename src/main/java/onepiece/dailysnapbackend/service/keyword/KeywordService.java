@@ -2,9 +2,10 @@ package onepiece.dailysnapbackend.service.keyword;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import onepiece.dailysnapbackend.mapper.KeywordMapper;
+import onepiece.dailysnapbackend.mapper.EntityMapper;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterRequest;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterResponse;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
@@ -29,7 +30,7 @@ public class KeywordService {
 
   private final KeywordRepository keywordRepository;
   private final KeywordSelectionService keywordSelectionService;
-  private final KeywordMapper keywordMapper = KeywordMapper.INSTANCE;
+  private final EntityMapper entityMapper;
 
   /**
    *  키워드 필터링 및 조회
@@ -66,12 +67,11 @@ public class KeywordService {
       throw new CustomException(ErrorCode.INVALID_DATE_REQUEST);
     }
 
-    Keyword existingKeyword = keywordRepository.findByProvidedDate(providedDate)
-        .orElseGet(() -> null);
-    if (existingKeyword != null) {
+    Optional<Keyword> optionalKeyword = keywordRepository.findByProvidedDate(providedDate);
+    if (optionalKeyword.isPresent()) {
+      Keyword existingKeyword = optionalKeyword.get();
       log.info("providedDate={}에 키워드 존재: keyword={}", providedDate, existingKeyword.getKeyword());
-      return wrapKeywordAsPage(existingKeyword, pageable);
-    }
+      return new PageImpl<>(Collections.singletonList(entityMapper.toKeywordFilterResponse(existingKeyword)), pageable, 1);    }
 
     if (providedDate.isBefore(today)) {
       log.info("과거 날짜({})에 키워드 없음", providedDate);
@@ -88,7 +88,7 @@ public class KeywordService {
     String keyword = CommonUtil.nvl(request.getKeyword(), "");
     String category = CommonUtil.nvl(request.getCategory(), "");
     String providedDate = CommonUtil.nvl(request.getProvidedDate(), "");
-    String isUsed = CommonUtil.nvl(request.getIsUsed() != null ? request.getIsUsed().toString() : "", "");
+    Boolean isUsed = request.getIsUsed();
 
     Page<Keyword> page = keywordRepository.filteredKeyword(keyword, category, providedDate, isUsed, pageable);
     if (page.isEmpty()) {
@@ -97,7 +97,7 @@ public class KeywordService {
     }
 
     log.info("필터링 완료: totalElements={}", page.getTotalElements());
-    return page.map(keywordMapper::toKeywordFilterResponse);
+    return page.map(entityMapper::toKeywordFilterResponse);
   }
 
   /**
@@ -109,11 +109,12 @@ public class KeywordService {
     KeywordRequest newKeyword = keywordSelectionService.getTodayKeyword();
     log.info("새 키워드 생성 완료: keyword={}", newKeyword.getKeyword());
 
+    boolean isUsed = true;
     Page<Keyword> page = keywordRepository.filteredKeyword(
         newKeyword.getKeyword(),
         newKeyword.getCategory().name(),
         LocalDate.now().toString(),
-        "true",
+        isUsed,
         pageable
     );
 
@@ -122,14 +123,7 @@ public class KeywordService {
       return Page.empty(pageable);
     }
 
-    return page.map(keywordMapper::toKeywordFilterResponse);
-  }
-
-  /**
-   *  단일 키워드를 페이지로 변환
-   */
-  private Page<KeywordFilterResponse> wrapKeywordAsPage(Keyword keyword, Pageable pageable) {
-    return new PageImpl<>(Collections.singletonList(keywordMapper.toKeywordFilterResponse(keyword)), pageable, 1);
+    return page.map(entityMapper::toKeywordFilterResponse);
   }
 
 }
