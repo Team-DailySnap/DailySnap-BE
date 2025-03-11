@@ -1,13 +1,10 @@
 package onepiece.dailysnapbackend.service;
 
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.object.dto.PostDetailRequest;
-import onepiece.dailysnapbackend.object.dto.PostResponse;
 import onepiece.dailysnapbackend.object.mongo.LikeHistory;
-import onepiece.dailysnapbackend.object.postgres.Image;
 import onepiece.dailysnapbackend.object.postgres.Member;
 import onepiece.dailysnapbackend.object.postgres.Post;
 import onepiece.dailysnapbackend.repository.mongo.LikeHistoryRepository;
@@ -16,6 +13,7 @@ import onepiece.dailysnapbackend.repository.postgres.PostRepository;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,21 +25,21 @@ public class LikeService {
   private final ImageRepository imageRepository;
   private final RedisLockService redisLockService;
 
-  public PostResponse increaseLikes(PostDetailRequest request, Member member) {
+  @Transactional
+  public int increaseLikes(PostDetailRequest request, Member member) {
     UUID postId = request.getPostId();
     String lockKey = "like_lock:" + postId + ":" + member.getMemberId();
 
+    Post post = postRepository.findById(postId)
+        .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+    boolean alreadyLiked = likeHistoryRepository.existsByPostIdAndMemberId(post.getPostId(), member.getMemberId());
+    if (alreadyLiked) {
+      log.warn("이미 좋아요를 누른 사용자: postId={}, memberId={}", post.getPostId(), member.getMemberId());
+      throw new CustomException(ErrorCode.ALREADY_LIKED);
+    }
+
     return redisLockService.executeWithLock(lockKey, () -> {
-      Post post = postRepository.findById(postId)
-          .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-
-      // 중복 좋아요 체크
-      boolean alreadyLiked = likeHistoryRepository.existsByPostIdAndMemberId(post.getPostId(), member.getMemberId());
-      if (alreadyLiked) {
-        log.warn("이미 좋아요를 누른 사용자: postId={}, memberId={}", post.getPostId(), member.getMemberId());
-        throw new CustomException(ErrorCode.ALREADY_LIKED);
-      }
-
       post.setLikeCount(post.getLikeCount() + 1);
       postRepository.save(post);
 
@@ -52,24 +50,14 @@ public class LikeService {
             .build();
         likeHistoryRepository.save(likeHistory);
       } catch (Exception e) {
-        // MongoDB 저장 실패 시 PostgreSQL 롤백
         post.setLikeCount(post.getLikeCount() - 1);
         postRepository.save(post);
         log.error("좋아요 기록 저장 실패: postId={}, memberId={}", post.getPostId(), member.getMemberId(), e);
         throw new CustomException(ErrorCode.LIKE_HISTORY_SAVE_FAILED);
       }
-      log.info("좋아요 수 증가: postId={}, viewCount={}", post.getPostId(), post.getViewCount());
 
-      List<Image> images = imageRepository.findByPost(post);
-
-      return PostResponse.builder()
-          .keyword(post.getKeyword())
-          .images(images)
-          .content(post.getContent())
-          .viewCount(post.getViewCount())
-          .likeCount(post.getLikeCount())
-          .location(post.getLocation())
-          .build();
+      log.info("좋아요 수 증가: postId={}, likeCount={}", post.getPostId(), post.getLikeCount());
+      return post.getLikeCount();
     });
   }
 }

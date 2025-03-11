@@ -1,8 +1,8 @@
 package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import java.util.UUID;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
-import onepiece.dailysnapbackend.object.dto.PostDetailRequest;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
 import onepiece.dailysnapbackend.object.dto.PostFilteredResponse;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
@@ -83,5 +83,5 @@ public interface PostControllerDocs {
         
         """
   )
-  ResponseEntity<PostResponse> detailPost(PostDetailRequest request);
+  ResponseEntity<PostResponse> detailPost(UUID postId);
 }

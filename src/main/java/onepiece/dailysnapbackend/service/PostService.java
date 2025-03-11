@@ -5,7 +5,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import onepiece.dailysnapbackend.object.dto.PostDetailRequest;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
 import onepiece.dailysnapbackend.object.dto.PostFilteredResponse;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
@@ -136,8 +135,7 @@ public class PostService {
 
   // 게시물 상세 조회
   @Transactional
-  public PostResponse getPostDetails(PostDetailRequest request) {
-    UUID postId = request.getPostId();
+  public PostResponse getPostDetails(UUID postId) {
     String lockKey = "post_lock:" + postId;
 
     Post post = postRepository.findById(postId)

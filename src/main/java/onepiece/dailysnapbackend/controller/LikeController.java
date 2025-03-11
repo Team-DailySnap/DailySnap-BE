@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
 import onepiece.dailysnapbackend.object.dto.PostDetailRequest;
-import onepiece.dailysnapbackend.object.dto.PostResponse;
 import onepiece.dailysnapbackend.object.postgres.Member;
 import onepiece.dailysnapbackend.service.LikeService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
@@ -29,7 +28,7 @@ public class LikeController implements LikeControllerDocs{
   @Override
   @PostMapping
   @LogMonitoringInvocation
-  public ResponseEntity<PostResponse> postLike(
+  public ResponseEntity<Integer> postLike(
       @AuthenticationPrincipal CustomUserDetails userDetails,
       @RequestBody PostDetailRequest request) {
     Member member = userDetails.getMember();
