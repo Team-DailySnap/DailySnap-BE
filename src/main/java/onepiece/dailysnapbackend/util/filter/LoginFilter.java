@@ -7,15 +7,15 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
-import onepiece.dailysnapbackend.object.mongo.RefreshToken;
 import onepiece.dailysnapbackend.object.postgres.Member;
-import onepiece.dailysnapbackend.repository.mongo.RefreshTokenRepository;
 import onepiece.dailysnapbackend.util.JwtUtil;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,7 +29,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
   private final JwtUtil jwtUtil;
   private final AuthenticationManager authenticationManager;
-  private final RefreshTokenRepository refreshTokenRepository;
+  private final RedisTemplate<String, String> redisTemplate;
 
   @Override
   public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) {
@@ -62,12 +62,13 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     log.info("accessToken = {}", accessToken);
     log.info("refreshToken = {}", refreshToken);
 
-    // Refresh Token 저장
-    refreshTokenRepository.save(RefreshToken.builder()
-        .token(refreshToken)
-        .memberId(customUserDetails.getMemberId())
-        .expiryDate(jwtUtil.getRefreshExpiryDate())
-        .build());
+    // Redis 에 Refresh Token 저장
+    redisTemplate.opsForValue().set(
+        "refreshToken:" + customUserDetails.getMemberId(), // 키: memberId를 포함한 고유 키
+        refreshToken, // 값: 리프레시 토큰
+        jwtUtil.getRefreshExpirationTime(), // 만료 시간
+        TimeUnit.MILLISECONDS
+    );
 
     // JSON 응답
     Map<String, String> tokenMap = new HashMap<>();
