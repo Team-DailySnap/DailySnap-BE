@@ -11,9 +11,9 @@ import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 @Getter
 @Setter
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class DailyKeywordResponse {
+@AllArgsConstructor
+public class KeywordResponse {
 
   private String keyword;
   private KeywordCategory category;

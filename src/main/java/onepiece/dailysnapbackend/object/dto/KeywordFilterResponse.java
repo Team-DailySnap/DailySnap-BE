@@ -13,10 +13,9 @@ import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DailyKeywordResponse {
+public class KeywordFilterResponse {
 
-  private String keyword;
-  private KeywordCategory category;
-  private LocalDate specifiedDate;
-  private LocalDate providedDate;
+  private String keyword; // 키워드 텍스트 필터
+  private KeywordCategory category; // 카테고리 필터
+  private LocalDate providedDate; // 날짜 필터
 }

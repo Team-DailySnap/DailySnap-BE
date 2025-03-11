@@ -39,14 +39,16 @@ public class KeywordService {
     log.info("오늘의 키워드: {}", keyword.getKeyword());
     return DailyKeywordResponse.builder()
         .keyword(keyword.getKeyword())
-        .date(keyword.getDate())
+        .category(keyword.getCategory())
+        .specifiedDate(keyword.getSpecifiedDate())
+        .providedDate(keyword.getProvidedDate())
         .build();
   }
 
   // DB 에서 오늘의 키워드 id 받아오기
   private UUID fetchKeywordFromDB() {
     LocalDate today = LocalDate.now();
-    Keyword keyword = keywordRepository.findKeywordByDate(today)
+    Keyword keyword = keywordRepository.findByProvidedDate(today)
         .orElseThrow(() -> new CustomException(ErrorCode.KEYWORD_NOT_FOUND));
 
     log.info("{} 키워드: {}", today, keyword.getKeyword());

@@ -2,17 +2,19 @@ package onepiece.dailysnapbackend.object.postgres;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 
 @Entity
 @Getter
@@ -32,11 +34,18 @@ public class Keyword extends BasePostgresEntity{
   @Column(nullable = false, unique = true)
   private String keyword;
 
-  // 날짜
+  // 키워드 카테고리 (계절, 여행, 일상 등)
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private LocalDate date;
+  private KeywordCategory category;
 
-  // 만료일
+  // 특정 날짜에 제공할 키워드 (ADMIN_SET에서 사용)
+  private LocalDate specifiedDate;
+
+  // 제공한 키워드 날짜
+  private LocalDate providedDate;
+
+  // 사용 여부 (이미 제공된 키워드인지 여부)
   @Column(nullable = false)
-  private LocalDateTime expiredDate;
+  private boolean isUsed;
 }
