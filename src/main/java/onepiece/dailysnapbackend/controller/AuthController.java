@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.dto.SignInRequest;
 import onepiece.dailysnapbackend.object.dto.SignUpRequest;
 import onepiece.dailysnapbackend.service.MemberService;
+import onepiece.dailysnapbackend.service.keyword.AdminKeywordService;
+import onepiece.dailysnapbackend.service.keyword.KeywordSelectionService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,12 +20,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @Tag(
-    name = "인증 관련 API",
-    description = "회원 인증 관련 API 제공"
+    name = "인증 API",
+    description = "회원 인증 API 제공"
 )
 public class AuthController implements AuthControllerDocs{
 
   private final MemberService memberService;
+  private final KeywordSelectionService keywordSelectionService;
+  private final AdminKeywordService adminKeywordService;
+
+  // ===========================
+  // 인증 관련 API
+  // ===========================
 
   // 회원가입
   @Override
