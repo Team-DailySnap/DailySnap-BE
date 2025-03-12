@@ -19,5 +19,7 @@ public class PostResponse {
   private Keyword keyword;
   private List<Image> images;
   private String content;
+  private Integer viewCount;
+  private Integer likeCount;
   private String location;
 }

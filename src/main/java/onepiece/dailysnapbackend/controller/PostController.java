@@ -2,6 +2,7 @@ package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,5 +52,13 @@ public class PostController implements PostControllerDocs {
       @AuthenticationPrincipal CustomUserDetails userDetails,
       @Valid @RequestBody PostFilteredRequest request) {
     return ResponseEntity.ok(postService.getFilteredPosts(request));
+  }
+
+  @Override
+  @GetMapping("/detail/{postId}")
+  @LogMonitoringInvocation
+  public ResponseEntity<PostResponse> detailPost(
+      @PathVariable UUID postId) {
+    return ResponseEntity.ok(postService.getPostDetails(postId));
   }
 }
