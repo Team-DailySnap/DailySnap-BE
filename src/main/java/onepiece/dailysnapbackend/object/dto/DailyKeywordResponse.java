@@ -17,6 +17,5 @@ public class DailyKeywordResponse {
 
   private String keyword;
   private KeywordCategory category;
-  private LocalDate specifiedDate;
   private LocalDate providedDate;
 }

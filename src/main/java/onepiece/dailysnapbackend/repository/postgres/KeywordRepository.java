@@ -31,7 +31,7 @@ public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
     SELECT k.* FROM keyword k 
     WHERE (:keyword = '' OR k.keyword ILIKE CONCAT('%', TRIM(:keyword), '%')) 
       AND (:category = '' OR k.category = :category) 
-      AND (:providedDate = '' OR k.provided_date = CAST(:providedDate AS DATE))
+      AND (:providedDate = '' OR k.provided_date = :proviedDate)
       AND (:isUsed IS NULL OR k.is_used = CAST(:isUsed AS BOOLEAN))
     """, nativeQuery = true)
   Page<Keyword> filteredKeyword(

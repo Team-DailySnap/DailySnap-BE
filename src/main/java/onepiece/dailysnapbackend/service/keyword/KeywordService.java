@@ -3,9 +3,11 @@ package onepiece.dailysnapbackend.service.keyword;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.mapper.EntityMapper;
+import onepiece.dailysnapbackend.object.dto.DailyKeywordResponse;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterRequest;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterResponse;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
@@ -19,6 +21,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -31,6 +35,9 @@ public class KeywordService {
   private final KeywordRepository keywordRepository;
   private final KeywordSelectionService keywordSelectionService;
   private final EntityMapper entityMapper;
+  private final RedisTemplate<String, String> redisTemplate;
+
+  private static final String KEYWORD_CACHE_KEY = "daily_keyword";
 
   /**
    *  키워드 필터링 및 조회
@@ -126,4 +133,42 @@ public class KeywordService {
     return page.map(entityMapper::toKeywordFilterResponse);
   }
 
+  @Transactional(readOnly = true)
+  public DailyKeywordResponse getDailyKeyword() {
+    String keywordId = redisTemplate.opsForValue().get(KEYWORD_CACHE_KEY);
+    // redis 에 오늘의 키워드가 없다면 DB 에서 조회 후 업데이트
+    if (keywordId == null) {
+      keywordId = fetchKeywordFromDB().toString();
+      redisTemplate.opsForValue().set(KEYWORD_CACHE_KEY, keywordId);
+    }
+
+    Keyword keyword = keywordRepository.findKeywordByKeywordId(UUID.fromString(keywordId))
+        .orElseThrow(() -> new CustomException(ErrorCode.KEYWORD_NOT_FOUND));
+
+    log.info("오늘의 키워드: {}", keyword.getKeyword());
+    return DailyKeywordResponse.builder()
+        .keyword(keyword.getKeyword())
+        .category(keyword.getCategory())
+        .providedDate(keyword.getProvidedDate())
+        .build();
+  }
+
+  // DB 에서 오늘의 키워드 id 받아오기
+  private UUID fetchKeywordFromDB() {
+    LocalDate today = LocalDate.now();
+    Keyword keyword = keywordRepository.findByProvidedDate(today)
+        .orElseThrow(() -> new CustomException(ErrorCode.KEYWORD_NOT_FOUND));
+
+    log.info("{} 키워드: {}", today, keyword.getKeyword());
+    return keyword.getKeywordId();
+  }
+
+  // 매일 자정 Redis 에 업데이트
+  @Scheduled(cron = "0 0 0 * * ?")
+  @Transactional(readOnly = true)
+  public void refreshDailyKeyword() {
+    UUID keywordId = fetchKeywordFromDB();
+    log.info("오늘의 키워드를 업데이트했습니다. dailyKeyword: {}", keywordId);
+    redisTemplate.opsForValue().set(KEYWORD_CACHE_KEY, keywordId.toString());
+  }
 }
