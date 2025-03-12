@@ -54,6 +54,7 @@ public class PostController implements PostControllerDocs {
     return ResponseEntity.ok(postService.getFilteredPosts(request));
   }
 
+  @Override
   @GetMapping("/detail/{postId}")
   @LogMonitoringInvocation
   public ResponseEntity<PostResponse> detailPost(
