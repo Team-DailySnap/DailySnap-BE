@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
+import onepiece.dailysnapbackend.object.dto.DailyKeywordResponse;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterRequest;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterResponse;
 import onepiece.dailysnapbackend.service.keyword.KeywordService;
@@ -12,6 +13,7 @@ import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,5 +41,12 @@ public class KeywordController implements KeywordControllerDocs {
       @AuthenticationPrincipal CustomUserDetails userDetails,
       @Valid @RequestBody KeywordFilterRequest request) {
     return ResponseEntity.ok(keywordService.filteredKeywords (request));
+  }
+
+  @Override
+  @GetMapping("/daily")
+  @LogMonitoringInvocation
+  public ResponseEntity<DailyKeywordResponse> getDailyKeyword() {
+    return ResponseEntity.ok(keywordService.getDailyKeyword());
   }
 }
