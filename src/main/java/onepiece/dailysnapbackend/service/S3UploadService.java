@@ -1,6 +1,5 @@
 package onepiece.dailysnapbackend.service;
 
-import jakarta.transaction.Transactional;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,6 +10,7 @@ import java.util.UUID;
 import javax.imageio.ImageIO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import onepiece.dailysnapbackend.object.constants.MimeType;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,12 +29,6 @@ public class S3UploadService {
   private String bucketName;
   private final S3Client s3Client;
 
-  private static final List<String> ALLOWED_FILE_TYPES = List.of(
-      "image/jpeg", "image/png", "image/jpg"
-  );
-  private static final String WEBP_CONTENT_TYPE = "image/webp";
-
-  @Transactional
   public List<String> upload(List<MultipartFile> files) {
     List<String> uploadFileNames = new ArrayList<>();
     for (MultipartFile file : files) {
@@ -44,40 +38,26 @@ public class S3UploadService {
     return uploadFileNames;
   }
 
-  @Transactional
   public String upload(MultipartFile file) {
     String fileType = file.getContentType();
-    log.info("파일 형식: {}", fileType);
-
     // 파일 형식 제한 검사
-    if (fileType == null || !ALLOWED_FILE_TYPES.contains(fileType)) {
+    if (fileType == null || !MimeType.isAllowed(fileType)) {
       log.error("허용되지 않은 파일 형식: {}", fileType);
       throw new CustomException(ErrorCode.INVALID_FILE_TYPE);
     }
 
-    String originalFileName = file.getOriginalFilename();
-    String fileNameBase = UUID.randomUUID() + "_" +
-                          (originalFileName != null ? originalFileName.replaceAll("\\..*$", "") : "image");
-
     try {
       // Webp 로 변환 시도
-      String webpFileName = fileNameBase + ".webp";
-      byte[] webpBytes = convertToWebp(file);
-      String fileUrl = uploadToS3(webpFileName, WEBP_CONTENT_TYPE, webpBytes);
+      ConvertedFile convertedFile = convertToWebp(file);
+      String fileUrl = uploadToS3(convertedFile.fileName, MimeType.WEBP.getMimeType(), convertedFile.bytes);
+
       log.info("WebP 이미지 업로드 완료: imageUrl={}", fileUrl);
       return fileUrl;
     } catch (Exception e) {
       log.warn("WebP 변환 실패, 원본 형식으로 업로드 시도: {}", e.getMessage());
-      String originalFileNameFull = fileNameBase +
-                                    (originalFileName != null && originalFileName.contains(".")
-                                        ? originalFileName.substring(originalFileName.lastIndexOf("."))
-                                        : ".jpg");
       try {
-        String fileUrl = uploadToS3(originalFileNameFull, fileType, file.getBytes());
-        log.info("원본 이미지 업로드 완료: imageUrl={}", fileUrl);
-        return fileUrl;
+        return uploadToS3(generateFileName(file.getOriginalFilename()), fileType, file.getBytes());
       } catch (IOException ex) {
-        log.error("파일 업로드 실패: {}", ex.getMessage());
         throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
       }
     }
@@ -95,22 +75,50 @@ public class S3UploadService {
       );
       return "https://" + bucketName + ".s3.amazonaws.com/" + fileName;
     } catch (Exception e) {
-      log.error("S3 업로드 실패: fileName={}, error={}", fileName, e.getMessage());
+      log.error("S3 업로드 실패: fileName={}, error={}", fileName, e.getMessage(), e);
       throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
     }
   }
 
-  private byte[] convertToWebp(MultipartFile file) throws IOException {
+  private static class ConvertedFile {
+
+    String fileName;
+    byte[] bytes;
+
+    ConvertedFile(String fileName, byte[] bytes) {
+      this.fileName = fileName;
+      this.bytes = bytes;
+    }
+  }
+
+  // Webp 로 변환 (파일명도 내부에서 처리)
+  private ConvertedFile convertToWebp(MultipartFile file) throws IOException {
+    if ("image/webp".equals(file.getContentType())) {
+      String fileName = generateFileName(file.getOriginalFilename());
+      return new ConvertedFile(fileName, file.getBytes());
+    }
+
     BufferedImage image = ImageIO.read(new ByteArrayInputStream(file.getBytes()));
     if (image == null) {
+      log.error("파일이 유효하지 않음: fileName={}", file.getOriginalFilename());
       throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
     }
+
+    String fileName = generateFileName(file.getOriginalFilename());
+    String webpFileName = fileName.replaceAll("\\.[^.]+$", ".webp");
 
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     boolean success = ImageIO.write(image, "webp", baos);
     if (!success) {
       throw new IOException("WebP 형식으로 변환 실패");
     }
-    return baos.toByteArray();
+    return new ConvertedFile(webpFileName, baos.toByteArray());
+  }
+
+  // 파일명 생성
+  private String generateFileName(String originalFileName) {
+    return originalFileName != null && !originalFileName.isBlank()
+        ? UUID.randomUUID() + "_" + originalFileName
+        : UUID.randomUUID() + "_" + System.currentTimeMillis();
   }
 }
