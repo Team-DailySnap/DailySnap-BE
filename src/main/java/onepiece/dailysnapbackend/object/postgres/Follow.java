@@ -20,7 +20,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Follow extends BasePostgresEntity{
+public class Follow extends BasePostgresEntity {
 
   // 팔로우 ID
   @Id
@@ -28,11 +28,11 @@ public class Follow extends BasePostgresEntity{
   @Column(columnDefinition = "uuid DEFAULT uuid_generate_v4()", updatable = false, nullable = false)
   private UUID followId;
 
-  // 팔로잉 회원(팔로우를 하는 회원)
-  @ManyToOne(fetch= FetchType.LAZY)
-  private Member following;
-
-  // 팔로워 회원(팔로우를 받는 회원)
-  @ManyToOne(fetch=FetchType.LAZY)
+  // 팔로우를 하는 회원
+  @ManyToOne(fetch = FetchType.LAZY)
   private Member follower;
+
+  // 팔로우를 받는 회원
+  @ManyToOne(fetch = FetchType.LAZY)
+  private Member followee;
 }

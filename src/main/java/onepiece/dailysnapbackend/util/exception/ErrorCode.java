@@ -74,7 +74,13 @@ public enum ErrorCode {
 
   ALREADY_LIKED(HttpStatus.BAD_REQUEST, "이미 좋아요를 눌렀습니다."),
 
-  LIKE_HISTORY_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "좋아요 내역 저장에 실패했습니다.");
+  LIKE_HISTORY_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "좋아요 내역 저장에 실패했습니다."),
+
+  // FOLLOW
+
+  ALREADY_FOLLOWED(HttpStatus.BAD_REQUEST, "이미 팔로우한 사용자입니다."),
+
+  FOLLOW_RELATIONSHIP_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 팔로우 관계를 찾을 수 없습니다.");
 
   private final HttpStatus status;
   private final String message;
