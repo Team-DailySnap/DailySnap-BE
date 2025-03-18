@@ -44,6 +44,10 @@
     @Column(nullable = true)
     private String content;
 
+    // 조회수
+    @Column(nullable = false)
+    private Integer viewCount;
+
     // 좋아요 수
     @Column(nullable = false)
     private Integer likeCount;
