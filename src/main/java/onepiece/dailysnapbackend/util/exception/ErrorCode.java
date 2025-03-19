@@ -63,7 +63,9 @@ public enum ErrorCode {
 
   FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드에 실패했습니다."),
 
-  INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 파일 형식입니다.");
+  INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 파일 형식입니다."),
+
+  INVALID_FILTER(HttpStatus.BAD_REQUEST, "잘못된 필터 값입니다.");
 
   private final HttpStatus status;
   private final String message;
