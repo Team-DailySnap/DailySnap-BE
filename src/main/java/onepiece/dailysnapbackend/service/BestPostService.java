@@ -2,7 +2,6 @@ package onepiece.dailysnapbackend.service;
 
 import static onepiece.dailysnapbackend.util.exception.ErrorCode.INVALID_FILTER;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +10,6 @@ import onepiece.dailysnapbackend.object.postgres.Post;
 import onepiece.dailysnapbackend.repository.postgres.BestPostRepository;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -40,7 +38,7 @@ public class BestPostService {
   @Scheduled(cron = "0 0 6 * * ?")
   public void updateDailyBest() {
     List<Post> topDailyPosts = bestPostRepository.findTop30ByOrderByLikeCountDesc();
-    redisTemplate.opsForValue().set(dailyKey, topDailyPosts, Duration.ofHours(24));
+    redisTemplate.opsForValue().set(dailyKey, topDailyPosts);
     log.info("일간 인기 게시물 갱신 완료: postCount={}", topDailyPosts.size());
   }
 
@@ -49,8 +47,8 @@ public class BestPostService {
   @Transactional
   public void updateWeeklyBest() {
     LocalDate sevenDaysAgo = LocalDate.now().minusDays(7);
-    List<Post> topWeeklyPosts = bestPostRepository.findByDailyBest(sevenDaysAgo, PageRequest.of(0, 30));
-    redisTemplate.opsForValue().set(weeklyKey, topWeeklyPosts, Duration.ofDays(7));
+    List<Post> topWeeklyPosts = bestPostRepository.findByDailyBestCreatedDateGreaterThanEqualOrderByLikeCountDesc(sevenDaysAgo);
+    redisTemplate.opsForValue().set(weeklyKey, topWeeklyPosts);
     log.info("주간 인기 게시물 갱신 완료: postCount={}", topWeeklyPosts.size());
   }
 
@@ -59,8 +57,8 @@ public class BestPostService {
   @Transactional
   public void updateMonthlyBest() {
     LocalDate fourWeeksAgo = LocalDate.now().minusWeeks(4);
-    List<Post> topMonthlyPosts = bestPostRepository.findByWeeklyBest(fourWeeksAgo, PageRequest.of(0, 30));
-    redisTemplate.opsForValue().set(monthlyKey, topMonthlyPosts, Duration.ofDays(30));
+    List<Post> topMonthlyPosts = bestPostRepository.findByWeeklyBestWeekStartDateGreaterThanEqualOrderByLikeCountDesc(fourWeeksAgo);
+    redisTemplate.opsForValue().set(monthlyKey, topMonthlyPosts);
     log.info("월간 인기 게시물 갱신 완료: postCount={}", topMonthlyPosts.size());
   }
 
@@ -75,21 +73,21 @@ public class BestPostService {
         posts = ops.get(dailyKey);
         if (posts == null) {
           posts = bestPostRepository.findTop30ByOrderByLikeCountDesc();
-          redisTemplate.opsForValue().set(dailyKey, posts, Duration.ofHours(24));
+          redisTemplate.opsForValue().set(dailyKey, posts);
         }
         return posts;
       case "weekly":
         posts = ops.get(weeklyKey);
         if (posts == null) {
-          posts = bestPostRepository.findByDailyBest(startDate.minusDays(7), PageRequest.of(0, 30));
-          redisTemplate.opsForValue().set(weeklyKey, posts, Duration.ofDays(7));
+          posts = bestPostRepository.findByDailyBestCreatedDateGreaterThanEqualOrderByLikeCountDesc(startDate.minusDays(7));
+          redisTemplate.opsForValue().set(weeklyKey, posts);
         }
         return posts;
       case "monthly":
         posts = ops.get(monthlyKey);
         if (posts == null) {
-          posts = bestPostRepository.findByWeeklyBest(startDate.minusWeeks(4), PageRequest.of(0, 30));
-          redisTemplate.opsForValue().set(monthlyKey, posts, Duration.ofDays(30));
+          posts = bestPostRepository.findByWeeklyBestWeekStartDateGreaterThanEqualOrderByLikeCountDesc(startDate.minusWeeks(4));
+          redisTemplate.opsForValue().set(monthlyKey, posts);
         }
         return posts;
       default:
