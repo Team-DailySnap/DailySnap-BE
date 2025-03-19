@@ -2,6 +2,7 @@ package onepiece.dailysnapbackend.controller.keyword;
 
 import io.swagger.v3.oas.annotations.Operation;
 import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
+import onepiece.dailysnapbackend.object.dto.DailyKeywordResponse;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterRequest;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterResponse;
 import org.springframework.data.domain.Page;
@@ -39,4 +40,22 @@ public interface KeywordControllerDocs {
       CustomUserDetails userDetails,
       @RequestBody KeywordFilterRequest request
   );
+
+  @Operation(
+      summary = "오늘의 키워드",
+      description = """
+          
+          이 API는 인증이 필요합니다.
+          
+          ### 요청 파라미터
+          - 없음
+          
+          ### 반환값
+          - **keyword** (String) : 키워드
+          - **category** (KeywordCategory) : 키워드 카테고리
+          - **providedDate** (LocalDate) : 제공한 날짜
+          
+          """
+  )
+  ResponseEntity<DailyKeywordResponse> getDailyKeyword();
 }

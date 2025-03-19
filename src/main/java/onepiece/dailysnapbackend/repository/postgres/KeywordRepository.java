@@ -10,9 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
-@Repository
 public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
 
   Optional<Keyword> findByCategoryAndSpecifiedDate(KeywordCategory category, LocalDate specifiedDate);
@@ -25,14 +23,15 @@ public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
 
   void deleteKeywordByKeyword(String keyword);
 
-  boolean existsByKeyword(String keyword);
+  Optional<Keyword> findKeywordByKeywordId(UUID keywordId);
 
+  boolean existsByKeyword(String keyword);
 
   @Query(value = """
     SELECT k.* FROM keyword k 
     WHERE (:keyword = '' OR k.keyword ILIKE CONCAT('%', TRIM(:keyword), '%')) 
       AND (:category = '' OR k.category = :category) 
-      AND (:providedDate = '' OR k.provided_date = CAST(:providedDate AS DATE))
+      AND (:providedDate = '' OR k.provided_date = :proviedDate)
       AND (:isUsed IS NULL OR k.is_used = CAST(:isUsed AS BOOLEAN))
     """, nativeQuery = true)
   Page<Keyword> filteredKeyword(
