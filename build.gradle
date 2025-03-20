@@ -65,6 +65,8 @@ dependencies {
 
     // redis
     implementation 'org.redisson:redisson-spring-boot-starter:3.36.0'
+
+    implementation 'org.sejda.imageio:webp-imageio:0.1.6'
 }
 
 tasks.named('test') {

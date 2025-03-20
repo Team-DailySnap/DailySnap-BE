@@ -1,11 +1,13 @@
 package onepiece.dailysnapbackend.service;
 
-import jakarta.transaction.Transactional;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import onepiece.dailysnapbackend.object.constants.MimeType;
+import onepiece.dailysnapbackend.object.dto.FileResponse;
+import onepiece.dailysnapbackend.util.FileUtil;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,13 +26,6 @@ public class S3UploadService {
   private String bucketName;
   private final S3Client s3Client;
 
-  private static final List<String> ALLOWED_FILE_TYPES = List.of(
-      "image/jpeg", "image/png", "image/jpg"
-  );
-  private static final long MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB 제한
-
-
-  @Transactional
   public List<String> upload(List<MultipartFile> files) {
     List<String> uploadFileNames = new ArrayList<>();
     for (MultipartFile file : files) {
@@ -40,39 +35,44 @@ public class S3UploadService {
     return uploadFileNames;
   }
 
-  @Transactional
   public String upload(MultipartFile file) {
     String fileType = file.getContentType();
-    log.info("파일 형식: {}", fileType);
-
-    // 파일 크기 제한 검사
-    if (file.getSize() > MAX_FILE_SIZE) {
-      log.error("파일 크기가 200MB를 초과했습니다: fileSize={}", file.getSize());
-      throw new CustomException(ErrorCode.FILE_SIZE_EXCEED);
-    }
-
     // 파일 형식 제한 검사
-    if (fileType == null || !ALLOWED_FILE_TYPES.contains(fileType)) {
+    if (fileType == null || !MimeType.isAllowedMimeType(fileType)) {
       log.error("허용되지 않은 파일 형식: {}", fileType);
       throw new CustomException(ErrorCode.INVALID_FILE_TYPE);
     }
 
-    String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+    try {
+      // Webp 로 변환 시도
+      FileResponse fileResponse = FileUtil.convertToWebp(file);
+      String fileUrl = uploadToS3(fileResponse.getFileName(), MimeType.WEBP.getMimeType(), fileResponse.getBytes());
 
+      log.info("WebP 이미지 업로드 완료: imageUrl={}", fileUrl);
+      return fileUrl;
+    } catch (Exception e) {
+      log.warn("WebP 변환 실패, 원본 형식으로 업로드 시도: {}", e.getMessage());
+      try {
+        return uploadToS3(FileUtil.generateFileName(file.getOriginalFilename()), fileType, file.getBytes());
+      } catch (IOException ex) {
+        throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
+      }
+    }
+  }
+
+  private String uploadToS3(String fileName, String contentType, byte[] bytes) {
     try {
       s3Client.putObject(
           PutObjectRequest.builder()
               .bucket(bucketName)
               .key(fileName)
-              .contentType(file.getContentType())
+              .contentType(contentType)
               .build(),
-          RequestBody.fromBytes(file.getBytes())
+          RequestBody.fromBytes(bytes)
       );
-      log.info("이미지 업로드 완료: imageUrl={}", fileName);
       return "https://" + bucketName + ".s3.amazonaws.com/" + fileName;
-
     } catch (Exception e) {
-      log.error("파일 업로드 실패: {}", e.getMessage());
+      log.error("S3 업로드 실패: fileName={}, error={}", fileName, e.getMessage(), e);
       throw new CustomException(ErrorCode.FILE_UPLOAD_FAILED);
     }
   }
