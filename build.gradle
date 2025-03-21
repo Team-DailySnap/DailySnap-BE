@@ -63,6 +63,9 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
     implementation 'software.amazon.awssdk:s3:2.17.72'
 
+    // 날짜 타입 변환
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.0'
+
     // redis
     implementation 'org.redisson:redisson-spring-boot-starter:3.36.0'
 }

@@ -5,10 +5,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import jakarta.persistence.ManyToOne;
-import java.time.LocalDate;
-import java.util.UUID;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,9 +35,9 @@ public class MonthlyBest extends BasePostgresEntity{
 
   // 해당 월의 시작 날짜
   @Column(nullable = false)
-  private LocalDate monthStartDate;
+  private LocalDateTime monthStartDate;
 
   // 해당 월의 종료 날짜
   @Column(nullable = false)
-  private LocalDate monthEndDate;
+  private LocalDateTime monthEndDate;
 }

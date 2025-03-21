@@ -1,8 +1,10 @@
 package onepiece.dailysnapbackend.mapper;
 
+import onepiece.dailysnapbackend.object.dto.BestPostResponse;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterResponse;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
 import onepiece.dailysnapbackend.object.postgres.Keyword;
+import onepiece.dailysnapbackend.object.postgres.Post;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -14,5 +16,7 @@ public interface EntityMapper {
   KeywordFilterResponse toKeywordFilterResponse(Keyword keyword);
   KeywordRequest toKeywordRequest(Keyword keyword);
 
+  // BestPost 관련
+  BestPostResponse toBestPostResponse(Post post);
 
 }

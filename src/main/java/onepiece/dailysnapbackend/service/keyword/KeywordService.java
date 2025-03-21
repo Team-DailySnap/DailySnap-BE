@@ -163,8 +163,8 @@ public class KeywordService {
     return keyword.getKeywordId();
   }
 
-  // 매일 자정 Redis 에 업데이트
-  @Scheduled(cron = "0 0 0 * * ?")
+  // 매일 새벽 6시 Redis 에 업데이트
+  @Scheduled(cron = "0 0 6 * * ?")
   @Transactional(readOnly = true)
   public void refreshDailyKeyword() {
     UUID keywordId = fetchKeywordFromDB();
