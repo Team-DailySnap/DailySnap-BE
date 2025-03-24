@@ -42,7 +42,7 @@ public class FollowController implements FollowControllerDocs{
   }
 
   @Override
-  @DeleteMapping("/unfollow")
+  @DeleteMapping("/follow")
   @LogMonitoringInvocation
   public ResponseEntity<Void> unfollowMember(
       @AuthenticationPrincipal CustomUserDetails userDetails,

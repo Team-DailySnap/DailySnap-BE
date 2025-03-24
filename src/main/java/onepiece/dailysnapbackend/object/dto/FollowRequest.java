@@ -33,7 +33,7 @@ public class FollowRequest {
   private Integer pageSize;
 
   @Schema(defaultValue = "createdDate")
-  @Pattern(regexp = "^(createdDate)")
+  @Pattern(regexp = "^(createdDate)$")
   private String sortField; // 정렬 조건 (생성일)
 
   @Schema(defaultValue = "DESC")
