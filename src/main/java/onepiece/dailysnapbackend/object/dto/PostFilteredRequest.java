@@ -39,6 +39,6 @@ public class PostFilteredRequest {
   private String sortField; // 정렬 조건 (생성일, 좋아요)
 
   @Schema(defaultValue = "DESC")
-  @Pattern(regexp = "^(ASC|DESC)&", message = "sortDirection에는 'ASC', 'DESC' 만 입력 가능합니다.")
+  @Pattern(regexp = "^(ASC|DESC)$", message = "sortDirection에는 'ASC', 'DESC' 만 입력 가능합니다.")
   private String sortDirection; // ASC, DESC
 }
