@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -50,7 +49,7 @@ public class PostController implements PostControllerDocs {
   @LogMonitoringInvocation
   public ResponseEntity<Page<PostFilteredResponse>> filteredPosts(
       @AuthenticationPrincipal CustomUserDetails userDetails,
-      @Valid @RequestBody PostFilteredRequest request) {
+      @Valid @ModelAttribute PostFilteredRequest request) {
     return ResponseEntity.ok(postService.getFilteredPosts(request));
   }
 
