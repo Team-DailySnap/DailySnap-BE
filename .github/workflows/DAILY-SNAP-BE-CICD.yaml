@@ -98,7 +98,7 @@ jobs:
               -e TZ=Asia/Seoul \
               -e "SPRING_PROFILES_ACTIVE=prod" \
               -v /etc/localtime:/etc/localtime:ro \
-              -v /home/***/Desktop/projects/daily-snap:/mnt/projects/daily-snap \
+              -v /home/dailysnap/docker/volume/daily-snap:/mnt/projects/daily-snap \
               ${{ secrets.DOCKERHUB_USERNAME }}/daily-snap-back:${BRANCH}
             
             # <none> 태그로 남은 이미지 정리
