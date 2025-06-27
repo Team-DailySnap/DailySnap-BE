@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import onepiece.dailysnapbackend.object.constants.AccountStatus;
 import onepiece.dailysnapbackend.object.constants.Role;
+import onepiece.dailysnapbackend.object.constants.SocialPlatform;
 
 @Entity
 @Getter
@@ -34,9 +35,10 @@ public class Member extends BasePostgresEntity{
   @Column(unique = true, nullable = false)
   private String username;
 
-  // 비밀번호
+  // 소셜 제공자
+  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private String password;
+  private SocialPlatform socialPlatform;
 
   // 닉네임
   @Column(unique = true, nullable = false)
@@ -60,6 +62,10 @@ public class Member extends BasePostgresEntity{
   // 일일 최대 업로드 수
   @Column(nullable = false)
   private Integer dailyUploadCount;
+
+  // 첫 로그인 여부
+  @Builder.Default
+  private Boolean isFirstLogin = true;
 
   // 과금 여부
   @Column(nullable = false)

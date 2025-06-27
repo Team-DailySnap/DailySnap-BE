@@ -7,18 +7,19 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.object.constants.AccountStatus;
 import onepiece.dailysnapbackend.object.constants.Role;
-import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
-import onepiece.dailysnapbackend.object.dto.SignUpRequest;
+import onepiece.dailysnapbackend.object.constants.SocialPlatform;
+import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
+import onepiece.dailysnapbackend.object.dto.SignInRequest;
 import onepiece.dailysnapbackend.object.postgres.Member;
 import onepiece.dailysnapbackend.repository.postgres.MemberRepository;
 import onepiece.dailysnapbackend.util.JwtUtil;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -27,31 +28,37 @@ import org.springframework.stereotype.Service;
 public class MemberService {
 
   private final MemberRepository memberRepository;
-  private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final JwtUtil jwtUtil;
 
-  // 회원가입
   @Transactional
-  public void signUp(SignUpRequest request) {
+  public void socialSignIn(SignInRequest request, HttpServletResponse response) {
+    SocialPlatform socialPlatform = SocialPlatform.valueOf(request.getProvider());
 
-    // 이메일 중복 체크
-    if (memberRepository.existsByUsername(request.getUsername())) {
-      log.error("이미 가입된 이메일입니다: {}", request.getUsername());
-      throw new CustomException(ErrorCode.DUPLICATE_USERNAME);
-    }
+    // DB에서 회원 조회
+    Member member = memberRepository.findByUsernameAndSocialPlatform(request.getUsername(), socialPlatform)
+        .orElseGet(() -> {
+          return memberRepository.save(Member.builder()
+              .username(request.getUsername())
+              .socialPlatform(socialPlatform)
+              .nickname(request.getNickname())
+              .birth(request.getBirth())
+              .role(Role.ROLE_USER)
+              .accountStatus(AccountStatus.ACTIVE_ACCOUNT)
+              .dailyUploadCount(0)
+              .isPaid(false)
+              .build()
+          );
+        });
 
-    memberRepository.save(Member.builder()
-        .username(request.getUsername())
-        .password(bCryptPasswordEncoder.encode(request.getPassword()))
-        .nickname(request.getNickname())
-        .birth(request.getBirth())
-        .role(Role.ROLE_USER)
-        .accountStatus(AccountStatus.ACTIVE_ACCOUNT)
-        .dailyUploadCount(0)
-        .isPaid(false)
-        .build()
-    );
-    log.info("회원가입 성공: username={}", request.getUsername());
+    log.info("소셜 로그인 성공: username={}", request.getUsername());
+
+    CustomOAuth2User userDetails = new CustomOAuth2User(member, Map.of());
+    String accessToken = jwtUtil.createAccessToken(userDetails);
+    String refreshToken = jwtUtil.createRefreshToken(userDetails);
+
+    // 응답 헤더에 토큰 설정
+    response.setHeader("Authorization", "Bearer " + accessToken);
+    response.setHeader("Refresh-Token", refreshToken);
   }
 
   // 리프레시 토큰을 통해 액세스 토큰 재발급
@@ -72,8 +79,8 @@ public class MemberService {
     }
 
     // 새 액세스 토큰 발급
-    CustomUserDetails customUserDetails = (CustomUserDetails) jwtUtil.getAuthentication(refresh).getPrincipal();
-    String newAccess = jwtUtil.createAccessToken(customUserDetails);
+    CustomOAuth2User customOAuth2User = (CustomOAuth2User) jwtUtil.getAuthentication(refresh).getPrincipal();
+    String newAccess = jwtUtil.createAccessToken(customOAuth2User);
 
     // JSON 응답 바디로 액세스 토큰 반환
     response.setContentType("application/json");

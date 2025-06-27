@@ -2,7 +2,7 @@ package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.UUID;
-import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
+import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
 import onepiece.dailysnapbackend.object.dto.PostFilteredResponse;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
@@ -35,7 +35,7 @@ public interface PostControllerDocs {
           """
   )
   ResponseEntity<PostResponse> uploadPost
-      (CustomUserDetails userDetails, PostRequest request);
+      (CustomOAuth2User userDetails, PostRequest request);
 
   @Operation(
       summary = "게시글 필터링 (페이징 및 정렬 지원)",
@@ -62,7 +62,7 @@ public interface PostControllerDocs {
           """
   )
   ResponseEntity<Page<PostFilteredResponse>> filteredPosts
-      (CustomUserDetails userDetails, PostFilteredRequest request);
+      (CustomOAuth2User userDetails, PostFilteredRequest request);
 
   @Operation(
       summary = "게시글 상세 조회",

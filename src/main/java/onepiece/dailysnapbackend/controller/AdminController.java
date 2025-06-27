@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
+import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
 import onepiece.dailysnapbackend.service.keyword.AdminKeywordService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
@@ -33,7 +33,7 @@ public class AdminController implements AdminControllerDocs {
   @PostMapping
   @LogMonitoringInvocation
   public ResponseEntity<Void> addKeyword(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @AuthenticationPrincipal CustomOAuth2User userDetails,
       @Valid @RequestBody KeywordRequest request) {
     adminKeywordService.addKeyword(request);
     log.info("[AdminController] 키워드 추가 완료");
@@ -47,7 +47,7 @@ public class AdminController implements AdminControllerDocs {
   @DeleteMapping("/{keyword}")
   @LogMonitoringInvocation
   public ResponseEntity<Void> deleteKeyword(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @AuthenticationPrincipal CustomOAuth2User userDetails,
       @PathVariable String keyword) {
     adminKeywordService.deleteKeyword(keyword);
     return ResponseEntity.ok().build();

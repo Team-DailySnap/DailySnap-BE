@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import onepiece.dailysnapbackend.service.CustomUserDetailsService;
+import onepiece.dailysnapbackend.service.CustomOAuth2UserService;
 import onepiece.dailysnapbackend.util.JwtUtil;
 import onepiece.dailysnapbackend.util.config.SecurityUrls;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
@@ -28,7 +28,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtUtil jwtUtil;
-  private final CustomUserDetailsService customUserDetailsService;
+  private final CustomOAuth2UserService customOAuth2UserService;
   private static final AntPathMatcher pathMatcher = new AntPathMatcher();
 
   @Override

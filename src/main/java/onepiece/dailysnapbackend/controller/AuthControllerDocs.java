@@ -3,43 +3,41 @@ package onepiece.dailysnapbackend.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import onepiece.dailysnapbackend.object.dto.SignInRequest;
-import onepiece.dailysnapbackend.object.dto.SignUpRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 
 public interface AuthControllerDocs {
 
   @Operation(
-      summary = "회원가입",
+      summary = "소셜 로그인",
       description = """
-          
-          이 API는 인증이 필요하지 않습니다.
-          
-          ### 요청 파라미터
-          - **username** (String): 사용자 이메일 (중복 불가)
-          - **password** (String): 사용자 비밀번호
-          - **nickname** (String): 사용자 닉네임 (중복 불가)
-          
-          ### 유의사항
-          - `username`과 `nickname`은 고유해야 합니다.
-          
-          """
-  )
-  ResponseEntity<Void> signUp(SignUpRequest request);
+        클라이언트에서 받은 accessToken을 이용하여 소셜 로그인 처리 후 JWT 토큰을 발급합니다.
+        
+        ### 요청 형식
+        - Content-Type: application/json
 
-  @Operation(
-      summary = "로그인",
-      description = """
-          
-          이 API는 인증이 필요하지 않습니다.
-          
-          ### 요청 파라미터
-          - **username** (String): 사용자 이메일
-          - **password** (String): 사용자 비밀번호
-          
-          """
+        ### 요청 바디 예시
+        ```json
+        {
+          "provider": "KAKAO",
+          "username": "example@naver.com",
+          "accessToken": "ya29.A0ARrdaMExampleAccessToken1234567890",
+          "birth": "2004-01-01",
+          "nickname": "daily_snap_user"
+        }
+        ```
+
+        ### 응답
+        - `200 OK`: 로그인 또는 회원가입 성공. 응답 헤더에 JWT 토큰 포함
+
+        ### 응답 헤더 예시
+        - `Authorization: Bearer <access-token>`
+        - `Refresh-Token: <refresh-token>`
+        """
   )
-  ResponseEntity<Void> signIn(SignInRequest request);
+  ResponseEntity<Void> signIn(@Valid @RequestBody SignInRequest request, HttpServletResponse response);
 
   @Operation(
       summary = "accessToken 재발급 요청",

@@ -14,8 +14,9 @@ import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
-import onepiece.dailysnapbackend.service.CustomUserDetailsService;
+import onepiece.dailysnapbackend.object.constants.SocialPlatform;
+import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
+import onepiece.dailysnapbackend.service.CustomOAuth2UserService;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +30,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtUtil {
 
-  private final CustomUserDetailsService customUserDetailsService;
+  private final CustomOAuth2UserService customOAuth2UserService;
   private final RedisTemplate<String, String> redisTemplate;
 
   @Value("${jwt.secret-key}")
@@ -69,6 +70,16 @@ public class JwtUtil {
         .get("role", String.class);
   }
 
+  // 토큰에서 provider 파싱
+  public String getProvider(String token) {
+    return Jwts.parser()
+        .verifyWith(getSignKey())
+        .build()
+        .parseSignedClaims(token)
+        .getPayload()
+        .get("provider", String.class);
+  }
+
   // 토큰 만료 여부 확인
   public Boolean isExpired(String token) {
     return Jwts.parser()
@@ -93,39 +104,40 @@ public class JwtUtil {
   /**
    * AccessToken 생성
    *
-   * @param customUserDetails
+   * @param customOAuth2User
    * @return
    */
-  public String createAccessToken(CustomUserDetails customUserDetails) {
-    log.info("엑세스 토큰 생성 중: 회원: {}", customUserDetails.getUsername());
-    return createToken(ACCESS_CATEGORY, customUserDetails, accessTokenExpTime);
+  public String createAccessToken(CustomOAuth2User customOAuth2User) {
+    log.info("엑세스 토큰 생성 중: 회원: {}", customOAuth2User.getUsername());
+    return createToken(ACCESS_CATEGORY, customOAuth2User, accessTokenExpTime);
   }
 
   /**
    * RefreshToken 생성
    *
-   * @param customUserDetails
+   * @param customOAuth2User
    * @return
    */
-  public String createRefreshToken(CustomUserDetails customUserDetails) {
-    log.info("리프래시 토큰 생성 중: 회원: {}", customUserDetails.getUsername());
-    return createToken(REFRESH_CATEGORY, customUserDetails, refreshTokenExpTime);
+  public String createRefreshToken(CustomOAuth2User customOAuth2User) {
+    log.info("리프래시 토큰 생성 중: 회원: {}", customOAuth2User.getUsername());
+    return createToken(REFRESH_CATEGORY, customOAuth2User, refreshTokenExpTime);
   }
 
   /**
    * JWT 토큰 생성 메서드
    *
-   * @param customUserDetails 회원 상세 정보
-   * @param expiredAt         만료 시간
+   * @param customOAuth2User 회원 상세 정보
+   * @param expiredAt        만료 시간
    * @return 생성된 JWT 토큰
    */
-  private String createToken(String category, CustomUserDetails customUserDetails, Long expiredAt) {
+  private String createToken(String category, CustomOAuth2User customOAuth2User, Long expiredAt) {
 
     return Jwts.builder()
-        .subject(customUserDetails.getUsername())
+        .subject(customOAuth2User.getUsername())
         .claim("category", category)
-        .claim("username", customUserDetails.getUsername())
-        .claim("role", customUserDetails.getMember().getRole())
+        .claim("username", customOAuth2User.getUsername())
+        .claim("role", customOAuth2User.getMember().getRole())
+        .claim("provider", customOAuth2User.getMember().getSocialPlatform())
         .issuer(issuer)
         .issuedAt(new Date(System.currentTimeMillis()))
         .expiration(new Date(System.currentTimeMillis() + expiredAt))
@@ -236,8 +248,11 @@ public class JwtUtil {
   public Authentication getAuthentication(String token) {
     Claims claims = getClaims(token);
     String username = claims.getSubject();
-    log.info("JWT에서 인증정보 파싱: username={}", username);
-    CustomUserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+    String provider = claims.get("provider", String.class);
+    SocialPlatform socialPlatform = SocialPlatform.valueOf(provider);
+    log.info("JWT에서 인증정보 파싱: username={}, socialPlatform={}", username, socialPlatform);
+    CustomOAuth2User userDetails = customOAuth2UserService.loadUserByUsernameAndSocialPlatform(username,
+        socialPlatform);
     return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
   }
 
