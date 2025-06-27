@@ -41,7 +41,6 @@ public class MemberService {
       throw new CustomException(DUPLICATE_USERNAME);
     }
 
-
     // DB에서 회원 조회
     Member member = memberRepository.findByUsername(request.getUsername())
         .orElseGet(() -> memberRepository.save(Member.builder()
