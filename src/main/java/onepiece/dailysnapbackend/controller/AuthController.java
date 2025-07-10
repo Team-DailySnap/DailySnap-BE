@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.dto.SignInRequest;
 import onepiece.dailysnapbackend.service.MemberService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
     name = "인증 API",
     description = "회원 인증 API 제공"
 )
-public class AuthController implements AuthControllerDocs{
+public class AuthController implements AuthControllerDocs {
 
   private final MemberService memberService;
 
@@ -28,7 +27,7 @@ public class AuthController implements AuthControllerDocs{
 
   // 로그인
   @Override
-  @PostMapping(value = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(value = "/login")
   @LogMonitoringInvocation
   public ResponseEntity<Void> signIn(SignInRequest request, HttpServletResponse response) {
     memberService.socialSignIn(request, response);

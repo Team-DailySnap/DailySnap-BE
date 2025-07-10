@@ -41,11 +41,11 @@ public class Member extends BasePostgresEntity{
   private SocialPlatform socialPlatform;
 
   // 닉네임
-  @Column(unique = true, nullable = false)
+  @Column(unique = true, nullable = true)
   private String nickname;
 
   // 생년월일
-  @Column(nullable = false)
+  @Column(nullable = true)
   private String birth;
 
   // 프로필 사진 URL

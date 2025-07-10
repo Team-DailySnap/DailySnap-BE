@@ -1,5 +1,7 @@
 package onepiece.dailysnapbackend.service;
 
+import static onepiece.dailysnapbackend.util.exception.ErrorCode.DUPLICATE_USERNAME;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,21 +36,25 @@ public class MemberService {
   public void socialSignIn(SignInRequest request, HttpServletResponse response) {
     SocialPlatform socialPlatform = SocialPlatform.valueOf(request.getProvider());
 
+    if (memberRepository.existsByUsername(request.getUsername())) {
+      log.info("이미 존재하는 사용자입니다. username: {}", request.getUsername());
+      throw new CustomException(DUPLICATE_USERNAME);
+    }
+
+
     // DB에서 회원 조회
-    Member member = memberRepository.findByUsernameAndSocialPlatform(request.getUsername(), socialPlatform)
-        .orElseGet(() -> {
-          return memberRepository.save(Member.builder()
-              .username(request.getUsername())
-              .socialPlatform(socialPlatform)
-              .nickname(request.getNickname())
-              .birth(request.getBirth())
-              .role(Role.ROLE_USER)
-              .accountStatus(AccountStatus.ACTIVE_ACCOUNT)
-              .dailyUploadCount(0)
-              .isPaid(false)
-              .build()
-          );
-        });
+    Member member = memberRepository.findByUsername(request.getUsername())
+        .orElseGet(() -> memberRepository.save(Member.builder()
+            .username(request.getUsername())
+            .socialPlatform(socialPlatform)
+            .nickname(request.getNickname())
+            .birth(request.getBirth())
+            .role(Role.ROLE_USER)
+            .accountStatus(AccountStatus.ACTIVE_ACCOUNT)
+            .dailyUploadCount(0)
+            .isPaid(false)
+            .build()
+        ));
 
     log.info("소셜 로그인 성공: username={}", request.getUsername());
 

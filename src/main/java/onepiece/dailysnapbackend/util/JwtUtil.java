@@ -251,8 +251,7 @@ public class JwtUtil {
     String provider = claims.get("provider", String.class);
     SocialPlatform socialPlatform = SocialPlatform.valueOf(provider);
     log.info("JWT에서 인증정보 파싱: username={}, socialPlatform={}", username, socialPlatform);
-    CustomOAuth2User userDetails = customOAuth2UserService.loadUserByUsernameAndSocialPlatform(username,
-        socialPlatform);
+    CustomOAuth2User userDetails = customOAuth2UserService.loadUserByUsername(username);
     return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
   }
 
