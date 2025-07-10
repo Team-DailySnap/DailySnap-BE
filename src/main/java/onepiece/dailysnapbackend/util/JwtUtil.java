@@ -8,6 +8,7 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import jakarta.servlet.http.Cookie;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -143,6 +144,22 @@ public class JwtUtil {
         .expiration(new Date(System.currentTimeMillis() + expiredAt))
         .signWith(getSignKey())
         .compact();
+  }
+
+  /**
+   * refreshToken Cookie 생성
+   *
+   * @param refreshToken 리프레시 토큰
+   * @return 생성된 쿠키
+   */
+  public Cookie createRefreshTokenCookie(String refreshToken) {
+    Cookie cookie = new Cookie("refresh_token", refreshToken);
+    cookie.setHttpOnly(true);
+    cookie.setSecure(false);
+    cookie.setPath("/");
+    cookie.setMaxAge(Math.toIntExact(refreshTokenExpTime));
+    cookie.setAttribute("SameSite", "Strict");
+    return cookie;
   }
 
   /**

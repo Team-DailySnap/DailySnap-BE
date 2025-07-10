@@ -33,8 +33,8 @@ public interface AuthControllerDocs {
         - `200 OK`: 로그인 또는 회원가입 성공. 응답 헤더에 JWT 토큰 포함
 
         ### 응답 헤더 예시
-        - `Authorization: Bearer <access-token>`
-        - `Refresh-Token: <refresh-token>`
+        - `Authorization: Bearer <access_token>`
+        - `Set-Cookie: refresh_token=<refresh_token>; HttpOnly; Secure; SameSite=Strict; Max-Age=<expiration-time>`
         """
   )
   ResponseEntity<Void> signIn(@Valid @RequestBody SignInRequest request, HttpServletResponse response);

@@ -4,6 +4,7 @@ import static onepiece.dailysnapbackend.util.exception.ErrorCode.DUPLICATE_USERN
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -63,8 +64,15 @@ public class MemberService {
 
     // 응답 헤더에 토큰 설정
     response.setHeader("Authorization", "Bearer " + accessToken);
-    response.setHeader("Refresh-Token", refreshToken);
-  }
+    Cookie refreshTokenCookie = jwtUtil.createRefreshTokenCookie(refreshToken);
+    response.addCookie(refreshTokenCookie);
+
+    log.info("쿠키 설정: name={}, value={}, maxAge={}",
+        refreshTokenCookie.getName(), refreshTokenCookie.getValue(),
+         refreshTokenCookie.getMaxAge());
+
+    response.getHeaderNames().forEach(name ->
+        log.info("Response Header: {}={}", name, response.getHeader(name)));  }
 
   // 리프레시 토큰을 통해 액세스 토큰 재발급
   @Transactional
