@@ -1,14 +1,15 @@
 package onepiece.dailysnapbackend.service;
 
+import static onepiece.dailysnapbackend.util.exception.ErrorCode.COOKIES_NOT_FOUND;
 import static onepiece.dailysnapbackend.util.exception.ErrorCode.DUPLICATE_USERNAME;
+import static onepiece.dailysnapbackend.util.exception.ErrorCode.REFRESH_TOKEN_EMPTY;
+import static onepiece.dailysnapbackend.util.exception.ErrorCode.REFRESH_TOKEN_NOT_FOUND;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -69,10 +70,11 @@ public class MemberService {
 
     log.info("쿠키 설정: name={}, value={}, maxAge={}",
         refreshTokenCookie.getName(), refreshTokenCookie.getValue(),
-         refreshTokenCookie.getMaxAge());
+        refreshTokenCookie.getMaxAge());
 
     response.getHeaderNames().forEach(name ->
-        log.info("Response Header: {}={}", name, response.getHeader(name)));  }
+        log.info("Response Header: {}={}", name, response.getHeader(name)));
+  }
 
   // 리프레시 토큰을 통해 액세스 토큰 재발급
   @Transactional
@@ -109,37 +111,25 @@ public class MemberService {
 
   // 리프레시 토큰 추출
   private String extractRefreshTokenFromRequest(HttpServletRequest request) {
-    try {
-      BufferedReader reader = request.getReader();
-      StringBuilder stringBuilder = new StringBuilder();
-
-      String line;
-      while ((line = reader.readLine()) != null) {
-        stringBuilder.append(line);
-      }
-
-      String requestBody = stringBuilder.toString();
-      log.info("Request Body: {}", requestBody);
-
-      // JSON 파싱
-      ObjectMapper objectMapper = new ObjectMapper();
-      JsonNode jsonNode = objectMapper.readTree(requestBody);
-
-      // "refreshToken" 키 추출
-      String refreshToken = jsonNode.path("refreshToken").asText(null);
-
-      // 리프레시 토큰이 없는 경우
-      if (refreshToken == null || refreshToken.isBlank()) {
-        log.error("요청 바디에 refresh token 이 없습니다.");
-        throw new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
-      }
-
-      log.info("refresh token 추출 성공: {}", refreshToken);
-      return refreshToken;
-
-    } catch (IOException e) {
-      log.error("요청 바디를 읽는 중 오류 발생: {}", e.getMessage());
-      throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+    Cookie[] cookies = request.getCookies();
+    if (cookies == null) {
+      log.error("쿠키가 존재하지 않습니다.");
+      throw new CustomException(COOKIES_NOT_FOUND);
     }
+
+    for (Cookie cookie : cookies) {
+      if ("refresh_token".equals(cookie.getName())) {
+        String refreshToken = cookie.getValue();
+        if (StringUtils.isBlank(refreshToken)) {
+          log.error("리프레시 토큰이 비어있습니다.");
+          throw new CustomException(REFRESH_TOKEN_EMPTY);
+        }
+        log.info("refresh token 추출 성공: {}", refreshToken);
+        return refreshToken;
+      }
+    }
+
+    log.error("요청 쿠키에 refresh token 이 없습니다.");
+    throw new CustomException(REFRESH_TOKEN_NOT_FOUND);
   }
 }

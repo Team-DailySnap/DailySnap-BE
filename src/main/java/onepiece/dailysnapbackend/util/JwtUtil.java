@@ -157,7 +157,7 @@ public class JwtUtil {
     cookie.setHttpOnly(true);
     cookie.setSecure(false);
     cookie.setPath("/");
-    cookie.setMaxAge(Math.toIntExact(refreshTokenExpTime));
+    cookie.setMaxAge(Math.toIntExact(refreshTokenExpTime) / 1000);
     cookie.setAttribute("SameSite", "Strict");
     return cookie;
   }
