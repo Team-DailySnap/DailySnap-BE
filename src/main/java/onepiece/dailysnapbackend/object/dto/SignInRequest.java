@@ -13,14 +13,21 @@ import lombok.Setter;
 @AllArgsConstructor
 public class SignInRequest {
 
-  // 이메일
+  @NotBlank(message = "소셜 로그인 플렛폼을 입력하세요 (예: KAKAO, GOOGLE)")
+  @Schema(defaultValue = "KAKAO")
+  private String provider;
+
   @NotBlank(message = "이메일을 입력하세요")
   @Schema(defaultValue = "example@naver.com")
   private String username;
 
-  // 비밀번호
-  @NotBlank(message = "비밀번호를 입력하세요")
-  @Schema(defaultValue = "pw12345")
-  private String password;
+  @NotBlank(message = "accessToken을 입력하세요")
+  @Schema(defaultValue = "ya29.A0ARrdaMExampleAccessToken1234567890")
+  private String accessToken;
 
+  @Schema(description = "생년월일 (선택)", defaultValue = "2004-01-01")
+  private String birth;
+
+  @Schema(description = "닉네임 (선택)", defaultValue = "daily_snap_user")
+  private String nickname;
 }

@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
+import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.util.JwtUtil;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
@@ -32,7 +32,7 @@ public class CustomLogoutHandler implements LogoutHandler {
 
       log.info("로그아웃 요청 바디: accessToken={}, refreshToken={}", accessToken, refreshToken);
 
-      CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+      CustomOAuth2User userDetails = (CustomOAuth2User) authentication.getPrincipal();
       String memberId = userDetails.getMemberId();
       String redisKey = "refreshToken:" + memberId;
 

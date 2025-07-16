@@ -2,7 +2,7 @@ package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.UUID;
-import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
+import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.FollowRequest;
 import onepiece.dailysnapbackend.object.dto.MemberResponse;
 import org.springframework.data.domain.Page;
@@ -22,7 +22,7 @@ public interface FollowControllerDocs {
           - HTTP 200 OK: 팔로우 성공
           """
   )
-  ResponseEntity<Void> followMember(CustomUserDetails userDetails, UUID followeeId);
+  ResponseEntity<Void> followMember(CustomOAuth2User userDetails, UUID followeeId);
 
   @Operation(
       summary = "사용자 언팔로우",
@@ -36,7 +36,7 @@ public interface FollowControllerDocs {
           - HTTP 200 OK: 언팔로우 성공
           """
   )
-  ResponseEntity<Void> unfollowMember(CustomUserDetails userDetails, UUID followeeId);
+  ResponseEntity<Void> unfollowMember(CustomOAuth2User userDetails, UUID followeeId);
 
   @Operation(
       summary = "팔로워 목록 조회",
@@ -53,7 +53,7 @@ public interface FollowControllerDocs {
           - **`Page<MemberResponse>`**: 팔로워 목록 (페이지네이션 적용)
           """
   )
-  Page<MemberResponse> getFollowers(CustomUserDetails userDetails, FollowRequest request);
+  Page<MemberResponse> getFollowers(CustomOAuth2User userDetails, FollowRequest request);
 
   @Operation(
       summary = "팔로잉 목록 조회",
@@ -70,5 +70,5 @@ public interface FollowControllerDocs {
           - **`Page<MemberResponse>`**: 팔로잉 목록 (페이지네이션 적용)
           """
   )
-  Page<MemberResponse> getFollowings(CustomUserDetails userDetails, FollowRequest request);
+  Page<MemberResponse> getFollowings(CustomOAuth2User userDetails, FollowRequest request);
 }

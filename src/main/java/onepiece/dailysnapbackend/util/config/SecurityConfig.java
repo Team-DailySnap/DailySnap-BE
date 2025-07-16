@@ -1,13 +1,14 @@
 package onepiece.dailysnapbackend.util.config;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
-import onepiece.dailysnapbackend.service.CustomUserDetailsService;
+import onepiece.dailysnapbackend.service.CustomOAuth2UserService;
+import onepiece.dailysnapbackend.service.MemberService;
 import onepiece.dailysnapbackend.util.JwtUtil;
 import onepiece.dailysnapbackend.util.filter.CustomLogoutHandler;
-import onepiece.dailysnapbackend.util.filter.LoginFilter;
 import onepiece.dailysnapbackend.util.filter.TokenAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +19,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -31,17 +31,19 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
   private final JwtUtil jwtUtil;
-  private final CustomUserDetailsService customUserDetailsService;
+  private final CustomOAuth2UserService customOAuth2UserService;
   private final AuthenticationConfiguration authenticationConfiguration;
   private final RedisTemplate<String, String> redisTemplate;
   private final CustomLogoutHandler customLogoutHandler;
+  private final ObjectMapper objectMapper;
+  private final MemberService memberService;
 
   /**
    * 허용된 CORS Origin 목록
    */
   private static final String[] ALLOWED_ORIGINS = {
-      "http://34.64.71.203:8087", // 메인 API 서버
-      "http://34.64.71.203:8088", // 테스트 API 서버
+      "http://3.34.61.168:8087", // 메인 API 서버
+      "http://3.34.61.168:8088", // 테스트 API 서버
 
       "http://localhost:8080", // 로컬 API 서버
       "http://localhost:3000", // 로컬 웹 서버
@@ -59,8 +61,8 @@ public class SecurityConfig {
     return http
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .csrf(AbstractHttpConfigurer::disable)
-        .httpBasic(AbstractHttpConfigurer::disable)  // ✅ 수정된 부분
-        .formLogin(AbstractHttpConfigurer::disable)  // ✅ 수정된 부분
+        .httpBasic(AbstractHttpConfigurer::disable)
+        .formLogin(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests((authorize) -> authorize
             .requestMatchers(SecurityUrls.AUTH_WHITELIST.toArray(new String[0]))
             .permitAll() // AUTH_WHITELIST에 등록된 URL은 인증 허용
@@ -78,13 +80,7 @@ public class SecurityConfig {
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         )
         .addFilterBefore(
-            new TokenAuthenticationFilter(jwtUtil, customUserDetailsService),
-            UsernamePasswordAuthenticationFilter.class
-        )
-        .addFilterAt(
-            new LoginFilter(jwtUtil,
-                authenticationManager(authenticationConfiguration),
-                redisTemplate),
+            new TokenAuthenticationFilter(jwtUtil, customOAuth2UserService),
             UsernamePasswordAuthenticationFilter.class
         )
         .build();
@@ -116,13 +112,5 @@ public class SecurityConfig {
     UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
     urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", configuration);
     return urlBasedCorsConfigurationSource;
-  }
-
-  /**
-   * 비밀번호 인코더 빈 (BCrypt)
-   */
-  @Bean
-  public BCryptPasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
   }
 }

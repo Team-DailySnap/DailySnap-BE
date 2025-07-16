@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
+import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.FollowRequest;
 import onepiece.dailysnapbackend.object.dto.MemberResponse;
 import onepiece.dailysnapbackend.object.postgres.Member;
@@ -36,7 +36,7 @@ public class FollowController implements FollowControllerDocs{
   @PostMapping("/follow")
   @LogMonitoringInvocation
   public ResponseEntity<Void> followMember(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @AuthenticationPrincipal CustomOAuth2User userDetails,
       @RequestParam UUID followeeId) {
     Member member = userDetails.getMember();
     followService.followMember(member, followeeId);
@@ -47,7 +47,7 @@ public class FollowController implements FollowControllerDocs{
   @DeleteMapping("/follow")
   @LogMonitoringInvocation
   public ResponseEntity<Void> unfollowMember(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @AuthenticationPrincipal CustomOAuth2User userDetails,
       @RequestParam UUID followeeId) {
     Member member = userDetails.getMember();
     followService.unfollowMember(member, followeeId);
@@ -58,7 +58,7 @@ public class FollowController implements FollowControllerDocs{
   @GetMapping("/followers")
   @LogMonitoringInvocation
   public Page<MemberResponse> getFollowers(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @AuthenticationPrincipal CustomOAuth2User userDetails,
       @Valid @ModelAttribute FollowRequest request) {
     Member member = userDetails.getMember();
     return followService.getFollowerList(member, request);
@@ -68,7 +68,7 @@ public class FollowController implements FollowControllerDocs{
   @GetMapping("/followings")
   @LogMonitoringInvocation
   public Page<MemberResponse> getFollowings(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @AuthenticationPrincipal CustomOAuth2User userDetails,
       @Valid @ModelAttribute FollowRequest request) {
     Member member = userDetails.getMember();
     return followService.getFollowingList(member, request);

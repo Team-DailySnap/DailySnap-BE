@@ -1,7 +1,7 @@
 package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
+import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.PostDetailRequest;
 import org.springframework.http.ResponseEntity;
 
@@ -21,5 +21,5 @@ public interface LikeControllerDocs {
         
         """
   )
-  ResponseEntity<Integer> postLike(CustomUserDetails userDetails, PostDetailRequest request);
+  ResponseEntity<Integer> postLike(CustomOAuth2User userDetails, PostDetailRequest request);
 }
