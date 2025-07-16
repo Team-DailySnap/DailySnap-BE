@@ -1,7 +1,7 @@
 package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
+import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
 import org.springframework.http.ResponseEntity;
 
@@ -19,7 +19,7 @@ public interface AdminControllerDocs {
             - `200 OK` → 성공
             """
   )
-  ResponseEntity<Void> addKeyword(CustomUserDetails userDetails, KeywordRequest request);
+  ResponseEntity<Void> addKeyword(CustomOAuth2User userDetails, KeywordRequest request);
 
   @Operation(
       summary = "특정 키워드 삭제 (관리자 전용)",
@@ -33,5 +33,5 @@ public interface AdminControllerDocs {
             - `200 OK` → 성공
             """
   )
-  ResponseEntity<Void> deleteKeyword(CustomUserDetails userDetails, String keyword);
+  ResponseEntity<Void> deleteKeyword(CustomOAuth2User userDetails, String keyword);
 }

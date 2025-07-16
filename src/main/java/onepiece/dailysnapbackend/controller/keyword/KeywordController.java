@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
+import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.DailyKeywordResponse;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterRequest;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterResponse;
@@ -38,7 +38,7 @@ public class KeywordController implements KeywordControllerDocs {
   @PostMapping
   @LogMonitoringInvocation
   public ResponseEntity<Page<KeywordFilterResponse>> filteredKeywords(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @AuthenticationPrincipal CustomOAuth2User userDetails,
       @Valid @RequestBody KeywordFilterRequest request) {
     return ResponseEntity.ok(keywordService.filteredKeywords (request));
   }

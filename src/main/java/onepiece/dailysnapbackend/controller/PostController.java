@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
+import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
 import onepiece.dailysnapbackend.object.dto.PostFilteredResponse;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
@@ -38,7 +38,7 @@ public class PostController implements PostControllerDocs {
   @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @LogMonitoringInvocation
   public ResponseEntity<PostResponse> uploadPost(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @AuthenticationPrincipal CustomOAuth2User userDetails,
       @Valid @ModelAttribute PostRequest request) {
     Member member = userDetails.getMember();
     return ResponseEntity.ok(postService.uploadPost(request, member));
@@ -48,7 +48,7 @@ public class PostController implements PostControllerDocs {
   @GetMapping
   @LogMonitoringInvocation
   public ResponseEntity<Page<PostFilteredResponse>> filteredPosts(
-      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @AuthenticationPrincipal CustomOAuth2User userDetails,
       @Valid @ModelAttribute PostFilteredRequest request) {
     return ResponseEntity.ok(postService.getFilteredPosts(request));
   }

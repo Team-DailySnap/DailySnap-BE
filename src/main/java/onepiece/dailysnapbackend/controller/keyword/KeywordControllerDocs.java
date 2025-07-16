@@ -1,7 +1,7 @@
 package onepiece.dailysnapbackend.controller.keyword;
 
 import io.swagger.v3.oas.annotations.Operation;
-import onepiece.dailysnapbackend.object.dto.CustomUserDetails;
+import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.DailyKeywordResponse;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterRequest;
 import onepiece.dailysnapbackend.object.dto.KeywordFilterResponse;
@@ -37,7 +37,7 @@ public interface KeywordControllerDocs {
   )
   @PostMapping
   ResponseEntity<Page<KeywordFilterResponse>> filteredKeywords(
-      CustomUserDetails userDetails,
+      CustomOAuth2User userDetails,
       @RequestBody KeywordFilterRequest request
   );
 
