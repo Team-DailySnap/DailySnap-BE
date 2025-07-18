@@ -21,10 +21,6 @@ public class SignInRequest {
   @Schema(defaultValue = "example@naver.com")
   private String username;
 
-  @NotBlank(message = "accessToken을 입력하세요")
-  @Schema(defaultValue = "ya29.A0ARrdaMExampleAccessToken1234567890")
-  private String accessToken;
-
   @Schema(description = "생년월일 (선택)", defaultValue = "2004-01-01")
   private String birth;
 

@@ -29,11 +29,6 @@ public class CustomOAuth2User implements OAuth2User {
     return Collections.singletonList(new SimpleGrantedAuthority(member.getRole().name()));
   }
 
-  @Override
-  public String getName() {
-    return member.getNickname();
-  }
-
   public String getUsername() {
     return member.getUsername();
   }
