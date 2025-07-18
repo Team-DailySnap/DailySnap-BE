@@ -108,7 +108,7 @@ public class JwtUtil {
    * @return
    */
   public String createAccessToken(CustomOAuth2User customOAuth2User) {
-    log.info("엑세스 토큰 생성 중: 회원: {}", customOAuth2User.getUsername());
+    log.info("엑세스 토큰 생성 중: 회원: {}", customOAuth2User.getName());
     return createToken(ACCESS_CATEGORY, customOAuth2User, accessTokenExpTime);
   }
 
@@ -119,7 +119,7 @@ public class JwtUtil {
    * @return
    */
   public String createRefreshToken(CustomOAuth2User customOAuth2User) {
-    log.info("리프래시 토큰 생성 중: 회원: {}", customOAuth2User.getUsername());
+    log.info("리프래시 토큰 생성 중: 회원: {}", customOAuth2User.getName());
     return createToken(REFRESH_CATEGORY, customOAuth2User, refreshTokenExpTime);
   }
 
@@ -133,9 +133,9 @@ public class JwtUtil {
   private String createToken(String category, CustomOAuth2User customOAuth2User, Long expiredAt) {
 
     return Jwts.builder()
-        .subject(customOAuth2User.getUsername())
+        .subject(customOAuth2User.getName())
         .claim("category", category)
-        .claim("username", customOAuth2User.getUsername())
+        .claim("username", customOAuth2User.getName())
         .claim("role", customOAuth2User.getMember().getRole())
         .claim("provider", customOAuth2User.getMember().getSocialPlatform())
         .issuer(issuer)
