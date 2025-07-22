@@ -8,7 +8,6 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
-import jakarta.servlet.http.Cookie;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -109,7 +108,7 @@ public class JwtUtil {
    * @return
    */
   public String createAccessToken(CustomOAuth2User customOAuth2User) {
-    log.info("엑세스 토큰 생성 중: 회원: {}", customOAuth2User.getUsername());
+    log.info("엑세스 토큰 생성 중: 회원: {}", customOAuth2User.getName());
     return createToken(ACCESS_CATEGORY, customOAuth2User, accessTokenExpTime);
   }
 
@@ -120,7 +119,7 @@ public class JwtUtil {
    * @return
    */
   public String createRefreshToken(CustomOAuth2User customOAuth2User) {
-    log.info("리프래시 토큰 생성 중: 회원: {}", customOAuth2User.getUsername());
+    log.info("리프래시 토큰 생성 중: 회원: {}", customOAuth2User.getName());
     return createToken(REFRESH_CATEGORY, customOAuth2User, refreshTokenExpTime);
   }
 
@@ -134,9 +133,9 @@ public class JwtUtil {
   private String createToken(String category, CustomOAuth2User customOAuth2User, Long expiredAt) {
 
     return Jwts.builder()
-        .subject(customOAuth2User.getUsername())
+        .subject(customOAuth2User.getName())
         .claim("category", category)
-        .claim("username", customOAuth2User.getUsername())
+        .claim("username", customOAuth2User.getName())
         .claim("role", customOAuth2User.getMember().getRole())
         .claim("provider", customOAuth2User.getMember().getSocialPlatform())
         .issuer(issuer)
@@ -144,22 +143,6 @@ public class JwtUtil {
         .expiration(new Date(System.currentTimeMillis() + expiredAt))
         .signWith(getSignKey())
         .compact();
-  }
-
-  /**
-   * refreshToken Cookie 생성
-   *
-   * @param refreshToken 리프레시 토큰
-   * @return 생성된 쿠키
-   */
-  public Cookie createRefreshTokenCookie(String refreshToken) {
-    Cookie cookie = new Cookie("refresh_token", refreshToken);
-    cookie.setHttpOnly(true);
-    cookie.setSecure(false);
-    cookie.setPath("/");
-    cookie.setMaxAge(Math.toIntExact(refreshTokenExpTime) / 1000);
-    cookie.setAttribute("SameSite", "Strict");
-    return cookie;
   }
 
   /**

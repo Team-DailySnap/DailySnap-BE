@@ -65,15 +65,17 @@ public class MemberService {
 
     // 응답 헤더에 토큰 설정
     response.setHeader("Authorization", "Bearer " + accessToken);
-    Cookie refreshTokenCookie = jwtUtil.createRefreshTokenCookie(refreshToken);
-    response.addCookie(refreshTokenCookie);
 
-    log.info("쿠키 설정: name={}, value={}, maxAge={}",
-        refreshTokenCookie.getName(), refreshTokenCookie.getValue(),
-        refreshTokenCookie.getMaxAge());
+    try {
+      response.setContentType("application/json");
+      response.getWriter().write(String.format("{\"refreshToken\": \"%s\"}", refreshToken));
+    } catch (IOException e) {
+      log.error("리프레시 토큰 응답 작성 중 오류 발생", e);
+      throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
+    }
 
-    response.getHeaderNames().forEach(name ->
-        log.info("Response Header: {}={}", name, response.getHeader(name)));
+    log.info("accessToken 헤더 설정 및 refreshToken body 응답 성공: accessToken={}, refreshToken={}: ", accessToken,
+        refreshToken);
   }
 
   // 리프레시 토큰을 통해 액세스 토큰 재발급
