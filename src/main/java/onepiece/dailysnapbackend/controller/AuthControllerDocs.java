@@ -23,18 +23,28 @@ public interface AuthControllerDocs {
         {
           "provider": "KAKAO",
           "username": "example@naver.com",
-          "accessToken": "ya29.A0ARrdaMExampleAccessToken1234567890",
           "birth": "2004-01-01",
           "nickname": "daily_snap_user"
         }
         ```
 
         ### 응답
-        - `200 OK`: 로그인 또는 회원가입 성공. 응답 헤더에 JWT 토큰 포함
+        - `200 OK`: 로그인 또는 회원가입 성공
 
-        ### 응답 헤더 예시
-        - `Authorization: Bearer <access_token>`
-        - `Set-Cookie: refresh_token=<refresh_token>; HttpOnly; Secure; SameSite=Strict; Max-Age=<expiration-time>`
+        ### 응답 형식
+        - `Authorization` 헤더에 accessToken 포함
+        - 응답 바디에 refreshToken 포함
+
+        ### 응답 예시
+        #### 헤더:
+        - `Authorization: Bearer your-access-token`
+        
+        #### 바디:
+        ```json
+        {
+          "refreshToken": "your-refresh-token"
+        }
+        ```
         """
   )
   ResponseEntity<Void> signIn(@Valid @RequestBody SignInRequest request, HttpServletResponse response);
