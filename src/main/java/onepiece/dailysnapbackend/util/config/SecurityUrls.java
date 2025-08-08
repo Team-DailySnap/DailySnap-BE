@@ -17,6 +17,7 @@ public class SecurityUrls {
       "/login", // 로그인
       "/api/auth/reissue", // 액세스 토큰 재발급
       "/",
+      "/mock/**",
 
       // Swagger
       "/docs/**", // Swagger UI
