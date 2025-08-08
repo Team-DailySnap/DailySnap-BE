@@ -1,6 +1,5 @@
 package onepiece.dailysnapbackend.mapper;
 
-import onepiece.dailysnapbackend.object.dto.KeywordFilterResponse;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
 import onepiece.dailysnapbackend.object.dto.MemberResponse;
 import onepiece.dailysnapbackend.object.postgres.Keyword;

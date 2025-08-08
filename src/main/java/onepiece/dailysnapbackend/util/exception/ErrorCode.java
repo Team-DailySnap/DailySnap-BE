@@ -84,7 +84,13 @@ public enum ErrorCode {
 
   ALREADY_FOLLOWED(HttpStatus.BAD_REQUEST, "이미 팔로우한 사용자입니다."),
 
-  FOLLOW_RELATIONSHIP_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 팔로우 관계를 찾을 수 없습니다.");
+  FOLLOW_RELATIONSHIP_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 팔로우 관계를 찾을 수 없습니다."),
+
+  // PAGEABLE
+
+  INVALID_SORT_FIELD(HttpStatus.BAD_REQUEST, "필터링 조회 시 정렬 필드 요청이 잘못되었습니다."),
+
+  ;
 
   private final HttpStatus status;
   private final String message;

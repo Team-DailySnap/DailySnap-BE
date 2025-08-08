@@ -93,7 +93,7 @@ public class KeywordSelectionService {
 
     // 어제 사용된 카테고리 찾기
     Keyword lastKeyword = optionalLastKeyword.get();
-    int lastIndex = indexOfCategory(lastKeyword.getCategory());
+    int lastIndex = indexOfCategory(lastKeyword.getKeywordCategory());
     int nextIndex = (lastIndex + 1) % allCategories.size();
 
     // 다음 카테고리가 계절이면 현재 월과 비교

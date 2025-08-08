@@ -40,7 +40,7 @@ public class Keyword extends BasePostgresEntity{
   // 키워드 카테고리 (계절, 여행, 일상 등)
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private KeywordCategory category;
+  private KeywordCategory keywordCategory;
 
   // 제공한 키워드 날짜
   private LocalDate providedDate;

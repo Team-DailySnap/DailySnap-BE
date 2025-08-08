@@ -55,7 +55,7 @@ public class AdminKeywordService {
         .keywordId(savedKeyword.getKeywordId())
         .koreanKeyword(savedKeyword.getKoreanKeyword())
         .englishKeyword(savedKeyword.getEnglishKeyword())
-        .keywordCategory(savedKeyword.getCategory())
+        .keywordCategory(savedKeyword.getKeywordCategory())
         .providedDate(savedKeyword.getProvidedDate())
         .used(savedKeyword.isUsed())
         .build();
