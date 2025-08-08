@@ -1,10 +1,9 @@
 package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import onepiece.dailysnapbackend.object.dto.LoginRequest;
 import onepiece.dailysnapbackend.object.dto.LoginResponse;
+import onepiece.dailysnapbackend.object.dto.ReissueRequest;
 import org.springframework.http.ResponseEntity;
 
 public interface AuthControllerDocs {
@@ -44,41 +43,28 @@ public interface AuthControllerDocs {
   ResponseEntity<LoginResponse> login(LoginRequest request);
 
   @Operation(
-      summary = "accessToken 재발급 요청",
+      summary = "액세스 토큰 재발급",
       description = """
-          
-          이 API는 인증이 필요하지 않습니다.
-          요청 쿠키에 포함된 RefreshToken만으로 새로운 AccessToken을 발급할 수 있습니다.
-          
           ### 요청 파라미터
-          - **Cookie**: JSON 형태의 요청 바디에 포함된 리프레시 토큰
-              - **Name**: `refresh_token`
-              - **Value**: `리프레시 토큰 값`
+          - `refreshToken` (String, required): 재발급에 사용할 리프레시 토큰 (JWT)
           
-          ### 반환값
-          - 새로운 액세스 토큰은 **JSON 응답 바디**에 포함되어 반환됩니다.
+          ### 응답 데이터
+          - `accessToken` (String): 새로 발급된 액세스 토큰 (JWT)
+          - `refreshToken` (String): 새로 발급된 리프레시 토큰 (JWT)
           
-          **반환 헤더 예시:**
-          ```
-          json
-          {
-            "accessToken": "your-new-access-token"
-          }
-          ```
+          ### 사용 방법
+          1. 클라이언트에서 아래 JSON 예시처럼 서버로 POST 요청을 보냅니다.
+             ```json
+             {
+               "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+             }
+             ```
+          2. 서버가 전달된 리프레시 토큰의 유효성을 검사한 후, 새로운 액세스 토큰과 리프레시 토큰을 생성하여 반환합니다.
           
-          ### 유의사항
-          - 이 API는 리프레시 토큰의 유효성을 검증한 후 새로운 액세스 토큰을 발급합니다.
-          - 리프레시 토큰이 유효하지 않거나 만료되었을 경우, 재로그인이 필요합니다.
-          
-          **응답 코드:**
-          - **200 OK**: 새로운 액세스 토큰 발급 성공 (헤더에 포함됨)
-          - **401 Unauthorized**: 리프레시 토큰이 유효하지 않거나 만료됨
-          - **400 Bad Request**: 요청에 쿠키가 없거나 리프레시 토큰이 없음
-          
-          **추가 설명:**
-          - 이 API는 `HttpServletRequest`의 요청 쿠키에서 `refreshToken`을 추출하여 처리합니다.
-          - 클라이언트는 `application/json` 형식으로 요청해야 합니다.
+          ### 유의 사항
+          - `refreshToken` 필드는 필수이며, 유효한 토큰이어야 합니다.
+          - 클라이언트는 반환된 `accessToken`을 Authorization 헤더에 담아 API 호출 시 사용해야 합니다.
           """
   )
-  ResponseEntity<Void> reissue(HttpServletRequest request, HttpServletResponse response);
+  ResponseEntity<LoginResponse> reissue(ReissueRequest request);
 }
