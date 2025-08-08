@@ -9,6 +9,7 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface EntityMapper {
+
   EntityMapper INSTANCE = Mappers.getMapper(EntityMapper.class);
 
   // Keyword 관련

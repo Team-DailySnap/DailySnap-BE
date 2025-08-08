@@ -18,7 +18,6 @@ public class SecurityUrls {
       "/api/auth/reissue", // 액세스 토큰 재발급
       "/",
 
-
       // Swagger
       "/docs/**", // Swagger UI
       "/v3/api-docs/**" // Swagger API 문서
@@ -29,7 +28,6 @@ public class SecurityUrls {
    * 관리자 권한이 필요한 URL 패턴 목록
    */
   public static final List<String> ADMIN_PATHS = Arrays.asList(
-
 
   );
 

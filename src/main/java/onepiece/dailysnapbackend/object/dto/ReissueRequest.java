@@ -11,6 +11,7 @@ import lombok.Setter;
 @Builder
 @AllArgsConstructor
 public class ReissueRequest {
+
   @NotBlank
   private String refreshToken;
 }

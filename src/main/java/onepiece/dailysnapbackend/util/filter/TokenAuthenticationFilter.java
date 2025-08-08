@@ -27,9 +27,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
+  private static final AntPathMatcher pathMatcher = new AntPathMatcher();
   private final JwtUtil jwtUtil;
   private final CustomOAuth2UserService customOAuth2UserService;
-  private static final AntPathMatcher pathMatcher = new AntPathMatcher();
 
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)

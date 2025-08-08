@@ -2,6 +2,10 @@ package onepiece.dailysnapbackend.service.keyword;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.object.constants.KeywordCategory;
@@ -17,22 +21,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.*;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class OpenAIKeywordService {
 
+  private static final String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+  private static final String MODEL = "gpt-4";
   private final KeywordRepository keywordRepository;
   private final WebClient webClient = WebClient.builder().build();
   private final ObjectMapper objectMapper = new ObjectMapper();
-
   @Value("${openai.api.key}")
   private String openAiApiKey;
-
-  private static final String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
-  private static final String MODEL = "gpt-4";
 
   @Transactional
   public void generateKeywords(KeywordCategory category) {
@@ -102,7 +102,7 @@ public class OpenAIKeywordService {
   }
 
   /**
-   *  중복 체크 후 키워드 저장
+   * 중복 체크 후 키워드 저장
    */
   private void saveKeywords(KeywordCategory category, List<String> keywords) {
     log.info("'{}' 카테고리 키워드 저장 시작", category);

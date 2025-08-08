@@ -22,7 +22,7 @@ import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Keyword extends BasePostgresEntity{
+public class Keyword extends BasePostgresEntity {
 
   // 키워드 ID
   @Id

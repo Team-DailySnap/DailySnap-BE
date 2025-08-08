@@ -21,12 +21,12 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class WeeklyBest extends BasePostgresEntity{
+public class WeeklyBest extends BasePostgresEntity {
 
   // 주간 우수작 ID
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Column( updatable = false, nullable = false)
+  @Column(updatable = false, nullable = false)
   private UUID weeklyBestId;
 
   // 일간 우수작

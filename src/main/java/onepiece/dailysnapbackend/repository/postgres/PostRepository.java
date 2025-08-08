@@ -11,19 +11,19 @@ import org.springframework.data.repository.query.Param;
 public interface PostRepository extends JpaRepository<Post, UUID> {
 
   @Query(value = """
-            SELECT p.*
-            FROM post p
-            JOIN member m ON p.member_id = m.member_id
-            WHERE trim(:nickname) = ''
-                  OR lower(m.nickname) LIKE lower(concat('%', trim(:nickname), '%'))
-            """,
+      SELECT p.*
+      FROM post p
+      JOIN member m ON p.member_id = m.member_id
+      WHERE trim(:nickname) = ''
+            OR lower(m.nickname) LIKE lower(concat('%', trim(:nickname), '%'))
+      """,
       countQuery = """
-            SELECT count(*)
-            FROM post p
-            JOIN member m ON p.member_id = m.member_id
-            WHERE trim(:nickname) = ''
-                  OR lower(m.nickname) LIKE lower(concat('%', trim(:nickname), '%'))
-            """,
+          SELECT count(*)
+          FROM post p
+          JOIN member m ON p.member_id = m.member_id
+          WHERE trim(:nickname) = ''
+                OR lower(m.nickname) LIKE lower(concat('%', trim(:nickname), '%'))
+          """,
       nativeQuery = true)
   Page<Post> filterPosts(@Param("nickname") String nickname, Pageable pageable);
 }

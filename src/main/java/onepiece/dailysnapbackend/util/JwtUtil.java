@@ -30,25 +30,20 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtUtil {
 
-  private final CustomOAuth2UserService customOAuth2UserService;
-  private final RedisTemplate<String, String> redisTemplate;
-
-  @Value("${jwt.secret-key}")
-  private String secretKey;
-
-  @Value("${jwt.access-exp-time}")
-  private Long accessTokenExpTime; // AccessToken 만료 시간
-
-  @Value("${jwt.refresh-exp-time}")
-  private Long refreshTokenExpTime; // RefreshToken 만료 시간
-
-  @Value("${jwt.issuer}")
-  private String issuer; // JWT 발급자
-
   private static final String ACCESS_CATEGORY = "access";
   private static final String REFRESH_CATEGORY = "refresh";
   private static final String BLACKLIST_KEY = "BL:";
   private static final String BLACKLIST_VALUE = "blacklist";
+  private final CustomOAuth2UserService customOAuth2UserService;
+  private final RedisTemplate<String, String> redisTemplate;
+  @Value("${jwt.secret-key}")
+  private String secretKey;
+  @Value("${jwt.access-exp-time}")
+  private Long accessTokenExpTime; // AccessToken 만료 시간
+  @Value("${jwt.refresh-exp-time}")
+  private Long refreshTokenExpTime; // RefreshToken 만료 시간
+  @Value("${jwt.issuer}")
+  private String issuer; // JWT 발급자
 
   // 토큰에서 username 파싱
   public String getUsername(String token) {

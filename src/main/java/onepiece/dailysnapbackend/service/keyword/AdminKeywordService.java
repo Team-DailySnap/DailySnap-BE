@@ -23,7 +23,7 @@ public class AdminKeywordService {
   private final KeywordService keywordService;
 
   /**
-   *  특정 날짜에 제공할 키워드 추가 (관리자 전용)
+   * 특정 날짜에 제공할 키워드 추가 (관리자 전용)
    */
   @Transactional
   public KeywordResponse addKeyword(KeywordRequest request) {
@@ -62,7 +62,7 @@ public class AdminKeywordService {
   }
 
   /**
-   *  특정 키워드 삭제 (관리자 전용)
+   * 특정 키워드 삭제 (관리자 전용)
    */
   @Transactional
   public void deleteKeyword(UUID keywordId) {

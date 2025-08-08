@@ -20,7 +20,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DailyBest extends BasePostgresEntity{
+public class DailyBest extends BasePostgresEntity {
 
   // 일간 우수작 ID
   @Id

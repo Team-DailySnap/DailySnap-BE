@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
     name = "게시물 좋아요 API",
     description = "게시물 좋아요 관련 API 제공"
 )
-public class LikeController implements LikeControllerDocs{
+public class LikeController implements LikeControllerDocs {
 
   private final LikeService likeService;
 

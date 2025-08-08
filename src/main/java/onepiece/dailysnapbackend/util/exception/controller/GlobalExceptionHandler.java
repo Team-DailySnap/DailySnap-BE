@@ -71,7 +71,6 @@ public class GlobalExceptionHandler {
         .errorMessage(ErrorCode.INTERNAL_SERVER_ERROR.getMessage())
         .build();
 
-
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
   }
 }

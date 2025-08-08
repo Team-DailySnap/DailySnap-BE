@@ -23,7 +23,7 @@ import onepiece.dailysnapbackend.object.constants.SocialPlatform;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Member extends BasePostgresEntity{
+public class Member extends BasePostgresEntity {
 
   // 회원 ID
   @Id
@@ -67,5 +67,5 @@ public class Member extends BasePostgresEntity{
   // 과금 여부
   @Builder.Default
   private boolean paid = false;
- }
+}
 

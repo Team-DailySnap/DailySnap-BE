@@ -52,23 +52,23 @@ public interface AdminKeywordControllerDocs {
   @Operation(
       summary = "특정 키워드 삭제",
       description = """
-        ### 요청 파라미터
-        - `keyword-id` (UUID, required, path): 삭제할 키워드의 고유 ID
-
-        ### 응답 데이터
-        - 없음 (빈 본문)
-
-        ### 사용 방법
-        1. 관리자 권한을 가진 클라이언트에서 Authorization 헤더에 `Bearer {accessToken}`을 포함합니다.  
-        2. 아래와 같이 DELETE 요청을 보냅니다:
-           ```
-           DELETE /admin/keyword/{keyword-id}
-           ```
-
-        ### 유의 사항
-        - 관리자 권한이 필요합니다.
-        - 성공 시 HTTP 200 OK 응답이 반환됩니다.
-        """
+          ### 요청 파라미터
+          - `keyword-id` (UUID, required, path): 삭제할 키워드의 고유 ID
+          
+          ### 응답 데이터
+          - 없음 (빈 본문)
+          
+          ### 사용 방법
+          1. 관리자 권한을 가진 클라이언트에서 Authorization 헤더에 `Bearer {accessToken}`을 포함합니다.  
+          2. 아래와 같이 DELETE 요청을 보냅니다:
+             ```
+             DELETE /admin/keyword/{keyword-id}
+             ```
+          
+          ### 유의 사항
+          - 관리자 권한이 필요합니다.
+          - 성공 시 HTTP 200 OK 응답이 반환됩니다.
+          """
   )
   ResponseEntity<Void> deleteKeyword(
       CustomOAuth2User customOAuth2User,
