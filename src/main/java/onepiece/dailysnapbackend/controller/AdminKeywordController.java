@@ -4,10 +4,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
 import onepiece.dailysnapbackend.object.dto.KeywordResponse;
 import onepiece.dailysnapbackend.service.keyword.AdminKeywordService;
+import onepiece.dailysnapbackend.service.keyword.OpenAIKeywordService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminKeywordController implements AdminKeywordControllerDocs {
 
   private final AdminKeywordService adminKeywordService;
+  private final OpenAIKeywordService openAIKeywordService;
 
   /**
    * 특정 날짜에 제공할 키워드 추가 (관리자 지정)
@@ -51,6 +54,15 @@ public class AdminKeywordController implements AdminKeywordControllerDocs {
       @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
       @PathVariable(value = "keyword-id") UUID keywordId) {
     adminKeywordService.deleteKeyword(keywordId);
+    return ResponseEntity.ok().build();
+  }
+
+  @Override
+  @PostMapping("/list")
+  public ResponseEntity<Void> createKeywordList(
+      @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
+      KeywordCategory category) {
+    openAIKeywordService.generateKeywords(category);
     return ResponseEntity.ok().build();
   }
 }

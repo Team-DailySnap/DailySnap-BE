@@ -9,18 +9,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
 
-  Optional<Keyword> findByKeywordCategoryAndProvidedDate(KeywordCategory keywordCategory, LocalDate providedDate);
-
-  Optional<Keyword> findFirstByKeywordCategoryAndUsedFalse(KeywordCategory keywordCategory);
-
   Optional<Keyword> findByProvidedDate(LocalDate providedDate);
 
-  Optional<Keyword> findKeywordByKeywordId(UUID keywordId);
-
   boolean existsByKoreanKeyword(String koreanKeyword);
+
+  // 특정 카테고리에서 가장 마지막에 저장된 providedDate 를 조회
+  @Query("SELECT MAX(k.providedDate) FROM Keyword k WHERE k.keywordCategory = :category")
+  LocalDate findMaxProvidedDateByCategory(@Param("category") KeywordCategory category);
 
   @Query(value = """
       SELECT k.* FROM keyword k 
