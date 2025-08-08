@@ -3,51 +3,45 @@ package onepiece.dailysnapbackend.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
-import onepiece.dailysnapbackend.object.dto.SignInRequest;
+import onepiece.dailysnapbackend.object.dto.LoginRequest;
+import onepiece.dailysnapbackend.object.dto.LoginResponse;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
 
 public interface AuthControllerDocs {
 
   @Operation(
       summary = "소셜 로그인",
       description = """
-        클라이언트에서 받은 accessToken을 이용하여 소셜 로그인 처리 후 JWT 토큰을 발급합니다.
-        
-        ### 요청 형식
-        - Content-Type: application/json
-
-        ### 요청 바디 예시
-        ```json
-        {
-          "provider": "KAKAO",
-          "username": "example@naver.com",
-          "birth": "2004-01-01",
-          "nickname": "daily_snap_user"
-        }
-        ```
-
-        ### 응답
-        - `200 OK`: 로그인 또는 회원가입 성공
-
-        ### 응답 형식
-        - `Authorization` 헤더에 accessToken 포함
-        - 응답 바디에 refreshToken 포함
-
-        ### 응답 예시
-        #### 헤더:
-        - `Authorization: Bearer your-access-token`
-        
-        #### 바디:
-        ```json
-        {
-          "refreshToken": "your-refresh-token"
-        }
-        ```
-        """
+          ### 요청 파라미터
+          - `socialPlatform` (SocialPlatform, required): 소셜 플랫폼 종류 (KAKAO, GOOGLE)
+          - `username` (String, required): 사용자 이메일 (unique)
+          - `birth` (String, optional): 사용자 생년월일 (형식: YYYY-MM-DD)
+          - `nickname` (String, optional): 사용자 닉네임 (unique)
+          
+          ### 응답 데이터
+          - `accessToken` (String): 발급된 액세스 토큰 (JWT)
+          - `refreshToken` (String): 발급된 리프레시 토큰 (JWT)
+          
+          ### 사용 방법
+          1. 클라이언트에서 아래 JSON 예시처럼 서버로 POST 요청을 보냅니다.
+             ```json
+             {
+               "socialPlatform": "KAKAO",
+               "username": "user@example.com",
+               "birth": "1990-01-01",
+               "nickname": "daily_snap_user"
+             }
+             ```
+          2. 서버가 회원 정보를 조회(또는 신규 저장) 후 JWT를 발급하여 반환합니다.
+          
+          ### 유의 사항
+          - `socialPlatform`과 `username` 필드는 필수입니다.
+          - `socialPlatform` 값은 `SocialPlatform` enum에 정의된 값만 허용됩니다.
+          - 이미 가입된 이메일(`username`)로 요청할 경우 기존 계정으로 로그인 처리됩니다.
+          - `birth`, `nickname`은 선택 필드이며, 미전달 시 기본값(빈 문자열 또는 null)으로 처리됩니다.
+          """
   )
-  ResponseEntity<Void> signIn(@Valid @RequestBody SignInRequest request, HttpServletResponse response);
+  ResponseEntity<LoginResponse> login(LoginRequest request);
 
   @Operation(
       summary = "accessToken 재발급 요청",
@@ -60,7 +54,7 @@ public interface AuthControllerDocs {
           - **Cookie**: JSON 형태의 요청 바디에 포함된 리프레시 토큰
               - **Name**: `refresh_token`
               - **Value**: `리프레시 토큰 값`
-
+          
           ### 반환값
           - 새로운 액세스 토큰은 **JSON 응답 바디**에 포함되어 반환됩니다.
           

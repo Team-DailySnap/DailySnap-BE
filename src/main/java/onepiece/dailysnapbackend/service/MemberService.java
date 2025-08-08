@@ -1,7 +1,6 @@
 package onepiece.dailysnapbackend.service;
 
 import static onepiece.dailysnapbackend.util.exception.ErrorCode.COOKIES_NOT_FOUND;
-import static onepiece.dailysnapbackend.util.exception.ErrorCode.DUPLICATE_USERNAME;
 import static onepiece.dailysnapbackend.util.exception.ErrorCode.REFRESH_TOKEN_EMPTY;
 import static onepiece.dailysnapbackend.util.exception.ErrorCode.REFRESH_TOKEN_NOT_FOUND;
 
@@ -16,9 +15,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.object.constants.AccountStatus;
 import onepiece.dailysnapbackend.object.constants.Role;
-import onepiece.dailysnapbackend.object.constants.SocialPlatform;
 import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
-import onepiece.dailysnapbackend.object.dto.SignInRequest;
+import onepiece.dailysnapbackend.object.dto.LoginResponse;
+import onepiece.dailysnapbackend.object.dto.LoginRequest;
 import onepiece.dailysnapbackend.object.postgres.Member;
 import onepiece.dailysnapbackend.repository.postgres.MemberRepository;
 import onepiece.dailysnapbackend.util.JwtUtil;
@@ -35,25 +34,19 @@ public class MemberService {
   private final JwtUtil jwtUtil;
 
   @Transactional
-  public void socialSignIn(SignInRequest request, HttpServletResponse response) {
-    SocialPlatform socialPlatform = SocialPlatform.valueOf(request.getProvider());
-
-    if (memberRepository.existsByUsername(request.getUsername())) {
-      log.info("이미 존재하는 사용자입니다. username: {}", request.getUsername());
-      throw new CustomException(DUPLICATE_USERNAME);
-    }
+  public LoginResponse socialSignIn(LoginRequest request) {
 
     // DB에서 회원 조회
     Member member = memberRepository.findByUsername(request.getUsername())
         .orElseGet(() -> memberRepository.save(Member.builder()
             .username(request.getUsername())
-            .socialPlatform(socialPlatform)
+            .socialPlatform(request.getSocialPlatform())
             .nickname(request.getNickname())
-            .birth(request.getBirth())
             .role(Role.ROLE_USER)
             .accountStatus(AccountStatus.ACTIVE_ACCOUNT)
             .dailyUploadCount(0)
-            .isPaid(false)
+            .firstLogin(true)
+            .paid(false)
             .build()
         ));
 
@@ -63,19 +56,7 @@ public class MemberService {
     String accessToken = jwtUtil.createAccessToken(userDetails);
     String refreshToken = jwtUtil.createRefreshToken(userDetails);
 
-    // 응답 헤더에 토큰 설정
-    response.setHeader("Authorization", "Bearer " + accessToken);
-
-    try {
-      response.setContentType("application/json");
-      response.getWriter().write(String.format("{\"refreshToken\": \"%s\"}", refreshToken));
-    } catch (IOException e) {
-      log.error("리프레시 토큰 응답 작성 중 오류 발생", e);
-      throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
-    }
-
-    log.info("accessToken 헤더 설정 및 refreshToken body 응답 성공: accessToken={}, refreshToken={}: ", accessToken,
-        refreshToken);
+    return new LoginResponse(accessToken, refreshToken);
   }
 
   // 리프레시 토큰을 통해 액세스 토큰 재발급

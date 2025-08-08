@@ -27,8 +27,8 @@ public class Member extends BasePostgresEntity{
 
   // 회원 ID
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Column(columnDefinition = "uuid DEFAULT uuid_generate_v4()", updatable = false, nullable = false)
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(updatable = false, nullable = false)
   private UUID memberId;
 
   // 이메일
@@ -41,34 +41,31 @@ public class Member extends BasePostgresEntity{
   private SocialPlatform socialPlatform;
 
   // 닉네임
-  @Column(unique = true, nullable = true)
+  @Column(unique = true)
   private String nickname;
-
-  // 생년월일
-  @Column(nullable = true)
-  private String birth;
 
   // 프로필 사진 URL
   private String profileImageUrl;
 
   // 권한 (유저, 관리자)
   @Enumerated(EnumType.STRING)
-  private Role role;
+  @Builder.Default
+  private Role role = Role.ROLE_USER;
 
   @Enumerated(EnumType.STRING)
   @Builder.Default
   private AccountStatus accountStatus = AccountStatus.ACTIVE_ACCOUNT;
 
-  // 일일 최대 업로드 수
   @Column(nullable = false)
-  private Integer dailyUploadCount;
+  @Builder.Default
+  private int dailyUploadCount = 0;
 
   // 첫 로그인 여부
   @Builder.Default
-  private Boolean isFirstLogin = true;
+  private boolean firstLogin = true;
 
   // 과금 여부
-  @Column(nullable = false)
-  private boolean isPaid;
+  @Builder.Default
+  private boolean paid = false;
  }
 
