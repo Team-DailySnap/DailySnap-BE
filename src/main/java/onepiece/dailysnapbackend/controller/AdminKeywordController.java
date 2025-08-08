@@ -36,7 +36,7 @@ public class AdminKeywordController implements AdminKeywordControllerDocs {
   @PostMapping
   @LogMonitoringInvocation
   public ResponseEntity<KeywordResponse> addKeyword(
-      @AuthenticationPrincipal CustomOAuth2User userDetails,
+      @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
       @Valid @RequestBody KeywordRequest request) {
     return ResponseEntity.ok(adminKeywordService.addKeyword(request));
   }
@@ -48,7 +48,7 @@ public class AdminKeywordController implements AdminKeywordControllerDocs {
   @DeleteMapping("/{keyword-id}")
   @LogMonitoringInvocation
   public ResponseEntity<Void> deleteKeyword(
-      @AuthenticationPrincipal CustomOAuth2User userDetails,
+      @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
       @PathVariable(value = "keyword-id") UUID keywordId) {
     adminKeywordService.deleteKeyword(keywordId);
     return ResponseEntity.ok().build();

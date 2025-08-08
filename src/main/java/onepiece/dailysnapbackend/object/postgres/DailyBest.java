@@ -24,8 +24,8 @@ public class DailyBest extends BasePostgresEntity{
 
   // 일간 우수작 ID
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Column(columnDefinition = "uuid DEFAULT uuid_generate_v4()", updatable = false, nullable = false)
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(updatable = false, nullable = false)
   private UUID dailyBestId;
 
   // 연관된 키워드

@@ -66,7 +66,7 @@ public interface KeywordControllerDocs {
           """
   )
   ResponseEntity<Page<KeywordResponse>> filteredKeywords(
-      CustomOAuth2User userDetails,
+      CustomOAuth2User customOAuth2User,
       KeywordFilterRequest request
   );
 }

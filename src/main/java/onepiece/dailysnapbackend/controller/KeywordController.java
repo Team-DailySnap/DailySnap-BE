@@ -35,7 +35,7 @@ public class KeywordController implements KeywordControllerDocs {
   @GetMapping
   @LogMonitoringInvocation
   public ResponseEntity<Page<KeywordResponse>> filteredKeywords(
-      @AuthenticationPrincipal CustomOAuth2User userDetails,
+      @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
       @ParameterObject KeywordFilterRequest request) {
     return ResponseEntity.ok(keywordService.filteredKeywords(request));
   }

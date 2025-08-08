@@ -8,7 +8,6 @@ import onepiece.dailysnapbackend.object.mongo.LikeHistory;
 import onepiece.dailysnapbackend.object.postgres.Member;
 import onepiece.dailysnapbackend.object.postgres.Post;
 import onepiece.dailysnapbackend.repository.mongo.LikeHistoryRepository;
-import onepiece.dailysnapbackend.repository.postgres.ImageRepository;
 import onepiece.dailysnapbackend.repository.postgres.PostRepository;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
@@ -22,7 +21,6 @@ public class LikeService {
 
   private final PostRepository postRepository;
   private final LikeHistoryRepository likeHistoryRepository;
-  private final ImageRepository imageRepository;
   private final RedisLockService redisLockService;
 
   @Transactional

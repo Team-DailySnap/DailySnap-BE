@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import java.util.UUID;
 import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
-import onepiece.dailysnapbackend.object.dto.PostFilteredResponse;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
 import onepiece.dailysnapbackend.object.dto.PostResponse;
 import org.springframework.data.domain.Page;
@@ -50,55 +49,100 @@ public interface PostControllerDocs {
           """
   )
   ResponseEntity<Void> uploadPost(
-      CustomOAuth2User userDetails,
+      CustomOAuth2User customOAuth2User,
       PostRequest request
   );
 
   @Operation(
-      summary = "게시글 필터링 (페이징 및 정렬 지원)",
+      summary = "게시물 상세 조회",
       description = """
-          
-          이 API는 인증이 필요합니다.
-          
           ### 요청 파라미터
-          - **nickname** (String): 닉네임으로 게시글 필터링 (선택, 빈 값일 경우 전체 조회)
-          - **pageNumber** (int): 페이지 번호 (0부터 시작, 기본값: 0)
-          - **pageSize** (int): 페이지당 게시글 개수 (기본값: 30)
-          - **sortField** (String): 정렬 기준 (`created_date`, `like_count` 중 선택, 기본값: `created_date`)
-          - **sortDirection** (String): 정렬 방향 (`ASC`, `DESC` 중 선택, 기본값: `DESC`)
+          - `post-id` (UUID, required, path): 조회할 게시물의 고유 ID
           
-          ### 반환값
-          - **member** (Member) : 회원
-          - **keyword** (Keyword) : 키워드
-          - **images** (List<Image>) : 이미지
-          - **content** (String): 사진 설명
-          - **viewCount** (Integer): 조회수
-          - **likeCount** (Integer) : 좋아요수
-          - **location** (String) : 위치
+          ### 응답 데이터
+          - `postId` (UUID): 게시물 고유 ID  
+          - `nickname` (String): 작성자 닉네임  
+          - `profileImageUrl` (String): 작성자 프로필 이미지 URL  
+          - `koreanKeyword` (String): 게시물에 사용된 한국어 키워드  
+          - `englishKeyword` (String): 게시물에 사용된 영어 키워드  
+          - `keywordCategory` (KeywordCategory): 키워드 카테고리  
+          - `providedDate` (LocalDate): 키워드 제공 날짜 (YYYY-MM-DD)  
+          - `imageUrl` (String): 게시물 이미지 URL  
+          - `description` (String): 게시물 설명  
+          - `likeCount` (int): 좋아요 수
           
+          ### 사용 방법
+          1. 클라이언트에서 Authorization 헤더에 `Bearer {accessToken}`을 포함하여 GET 요청을 보냅니다:
+             ```
+             GET /api/auth/{post-id}
+             ```
+          2. 서버가 해당 `post-id`에 매핑된 게시물을 조회하여 `PostResponse` 형태로 반환합니다.
+          
+          ### 유의 사항
+          - `post-id`는 UUID 형식이어야 합니다.  
+          - 존재하지 않는 `post-id`로 요청 시 400 Bad Request 응답이 반환됩니다.  
           """
   )
-  ResponseEntity<Page<PostFilteredResponse>> filteredPosts
-      (CustomOAuth2User userDetails, PostFilteredRequest request);
+  ResponseEntity<PostResponse> getPost(
+      CustomOAuth2User userDetails,
+      UUID postId
+  );
 
   @Operation(
-      summary = "게시글 상세 조회",
+      summary = "게시물 목록 조회 (동적 필터링)",
       description = """
-          
-          이 API는 인증이 필요합니다.
-          
           ### 요청 파라미터
-          - **postId** (Long): 좋아요를 누를 게시글 ID (필수)
+          - `keywordId` (UUID, optional, query): 키워드 고유 ID로 필터링
+          - `koreanKeyword` (String, optional, query): 한국어 키워드 텍스트로 필터링 (부분 일치)
+          - `englishKeyword` (String, optional, query): 영어 키워드 텍스트로 필터링 (부분 일치)
+          - `description` (String, optional, query): 게시물 설명 텍스트로 필터링 (부분 일치)
+          - `pageNumber` (int, optional, query): 페이지 번호 (1 이상, 기본값: 1)
+          - `pageSize` (int, optional, query): 페이지 크기 (기본값: `PageableConstants.DEFAULT_PAGE_SIZE`)
+          - `sortField` (PostSortField, optional, query): 정렬 기준 필드 (CREATED_DATE, LIKE_COUNT; 기본값: CREATED_DATE)
+          - `sortDirection` (Sort.Direction, optional, query): 정렬 방향 (ASC 또는 DESC; 기본값: DESC)
           
-          ### 반환값
-          - **keyword** (String): 게시글 키워드
-          - **images** (List<Image>): 게시글 이미지 목록
-          - **content** (String): 게시글 내용
-          - **viewCount** (int): 조회수
-          - **likeCount** (int): 좋아요 수
-          - **location** (String): 게시글 위치 정보
+          ### 응답 데이터
+          - `content` (List<PostResponse>): 조회된 게시물 리스트  
+            - `postId` (UUID): 게시물 고유 ID  
+            - `nickname` (String): 작성자 닉네임  
+            - `profileImageUrl` (String): 작성자 프로필 이미지 URL  
+            - `koreanKeyword` (String): 게시물에 사용된 한국어 키워드  
+            - `englishKeyword` (String): 게시물에 사용된 영어 키워드  
+            - `keywordCategory` (KeywordCategory): 키워드 카테고리  
+            - `providedDate` (LocalDate): 키워드 제공 날짜 (yyyy-MM-dd)  
+            - `imageUrl` (String): 게시물 이미지 URL  
+            - `description` (String): 게시물 설명  
+            - `likeCount` (int): 좋아요 수  
+          - `pageable` (Object): 페이지 요청 정보  
+          - `totalPages` (int): 전체 페이지 수  
+          - `totalElements` (long): 전체 게시물 수  
+          - `first` (boolean): 첫 페이지 여부  
+          - `last` (boolean): 마지막 페이지 여부  
+          - `numberOfElements` (int): 현재 페이지 게시물 수  
+          - `empty` (boolean): 결과 비어있는지 여부
           
+          ### 사용 방법
+          1. 클라이언트에서 Authorization 헤더에 `Bearer {accessToken}`을 포함하여 GET 요청을 보냅니다.  
+          2. 쿼리 파라미터로 필터·페이징·정렬 조건을 전달합니다. 예:
+             ```
+             GET /api/post?
+               keywordId=3fa85f64-5717-4562-b3fc-2c963f66afa6&
+               koreanKeyword=사진&
+               description=여행&
+               pageNumber=1&
+               pageSize=10&
+               sortField=LIKE_COUNT&
+               sortDirection=DESC
+             ```
+          
+          ### 유의 사항
+          - 모든 파라미터는 선택 사항이며, 미전달 시 기본값이 적용됩니다.  
+          - `pageNumber`는 1부터 시작합니다.  
+          - `sortField`와 `sortDirection`은 `PostSortField` 및 `Sort.Direction` enum 값만 허용됩니다.  
+          - UUID 형식 필터(`keywordId`) 시 올바른 UUID 형식을 준수해야 합니다.
           """
   )
-  ResponseEntity<PostResponse> detailPost(UUID postId);
+  ResponseEntity<Page<PostResponse>> filteredPost(
+      PostFilteredRequest request
+  );
 }

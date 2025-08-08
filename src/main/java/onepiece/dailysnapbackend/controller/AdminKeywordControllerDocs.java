@@ -45,7 +45,7 @@ public interface AdminKeywordControllerDocs {
           """
   )
   ResponseEntity<KeywordResponse> addKeyword(
-      CustomOAuth2User userDetails,
+      CustomOAuth2User customOAuth2User,
       KeywordRequest request
   );
 
@@ -71,7 +71,7 @@ public interface AdminKeywordControllerDocs {
         """
   )
   ResponseEntity<Void> deleteKeyword(
-      CustomOAuth2User userDetails,
+      CustomOAuth2User customOAuth2User,
       UUID keywordId
   );
 }

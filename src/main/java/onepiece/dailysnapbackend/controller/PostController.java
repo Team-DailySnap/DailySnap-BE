@@ -6,11 +6,11 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
-import onepiece.dailysnapbackend.object.dto.PostFilteredResponse;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
 import onepiece.dailysnapbackend.object.dto.PostResponse;
 import onepiece.dailysnapbackend.service.PostService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,26 +37,26 @@ public class PostController implements PostControllerDocs {
   @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @LogMonitoringInvocation
   public ResponseEntity<Void> uploadPost(
-      @AuthenticationPrincipal CustomOAuth2User userDetails,
+      @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
       @Valid @ModelAttribute PostRequest request) {
-    postService.uploadPost(userDetails.getMember(), request);
+    postService.uploadPost(customOAuth2User.getMember(), request);
     return ResponseEntity.ok().build();
   }
 
   @Override
-  @GetMapping
+  @GetMapping("/{post-id}")
   @LogMonitoringInvocation
-  public ResponseEntity<Page<PostFilteredResponse>> filteredPosts(
+  public ResponseEntity<PostResponse> getPost(
       @AuthenticationPrincipal CustomOAuth2User userDetails,
-      @Valid @ModelAttribute PostFilteredRequest request) {
-    return ResponseEntity.ok(postService.getFilteredPosts(request));
+      @PathVariable(name = "post-id") UUID postId) {
+    return ResponseEntity.ok(postService.getPost(userDetails.getMember(), postId));
   }
 
-  @Override
-  @GetMapping("/detail/{postId}")
+  @GetMapping("")
   @LogMonitoringInvocation
-  public ResponseEntity<PostResponse> detailPost(
-      @PathVariable UUID postId) {
-    return ResponseEntity.ok(postService.getPostDetails(postId));
+  public ResponseEntity<Page<PostResponse>> filteredPost(
+      @ParameterObject PostFilteredRequest request
+  ) {
+    return ResponseEntity.ok(postService.filteredPost(request));
   }
 }
