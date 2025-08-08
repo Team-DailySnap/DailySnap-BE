@@ -1,6 +1,7 @@
 package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import java.util.UUID;
 import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
 import onepiece.dailysnapbackend.object.dto.KeywordResponse;
@@ -49,16 +50,28 @@ public interface AdminKeywordControllerDocs {
   );
 
   @Operation(
-      summary = "특정 키워드 삭제 (관리자 전용)",
+      summary = "특정 키워드 삭제",
       description = """
-          특정 키워드를 삭제합니다. **관리자 권한이 필요합니다.**
-          
-          ### 요청 파라미터
-          - `keyword` (String) → 삭제할 키워드의 ID
-          
-          ### 반환값
-          - `200 OK` → 성공
-          """
+        ### 요청 파라미터
+        - `keyword-id` (UUID, required, path): 삭제할 키워드의 고유 ID
+
+        ### 응답 데이터
+        - 없음 (빈 본문)
+
+        ### 사용 방법
+        1. 관리자 권한을 가진 클라이언트에서 Authorization 헤더에 `Bearer {accessToken}`을 포함합니다.  
+        2. 아래와 같이 DELETE 요청을 보냅니다:
+           ```
+           DELETE /admin/keyword/{keyword-id}
+           ```
+
+        ### 유의 사항
+        - 관리자 권한이 필요합니다.
+        - 성공 시 HTTP 200 OK 응답이 반환됩니다.
+        """
   )
-  ResponseEntity<Void> deleteKeyword(CustomOAuth2User userDetails, String keyword);
+  ResponseEntity<Void> deleteKeyword(
+      CustomOAuth2User userDetails,
+      UUID keywordId
+  );
 }

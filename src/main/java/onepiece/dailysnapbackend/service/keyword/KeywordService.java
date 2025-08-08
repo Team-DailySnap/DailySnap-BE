@@ -171,4 +171,12 @@ public class KeywordService {
     log.info("오늘의 키워드를 업데이트했습니다. dailyKeyword: {}", keywordId);
     redisTemplate.opsForValue().set(KEYWORD_CACHE_KEY, keywordId.toString());
   }
+
+  public Keyword findKeywordById(UUID keywordId) {
+    return keywordRepository.findById(keywordId)
+        .orElseThrow(() -> {
+          log.error("삭제 요청한 키워드를 찾을 수 없음: {}", keywordId);
+          return new CustomException(ErrorCode.KEYWORD_NOT_FOUND);
+        });
+  }
 }

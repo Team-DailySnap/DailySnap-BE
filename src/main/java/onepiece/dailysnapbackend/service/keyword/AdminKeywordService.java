@@ -1,6 +1,7 @@
 package onepiece.dailysnapbackend.service.keyword;
 
 import java.time.LocalDate;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.object.constants.KeywordCategory;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminKeywordService {
 
   private final KeywordRepository keywordRepository;
+  private final KeywordService keywordService;
 
   /**
    *  특정 날짜에 제공할 키워드 추가 (관리자 전용)
@@ -64,13 +66,9 @@ public class AdminKeywordService {
    *  특정 키워드 삭제 (관리자 전용)
    */
   @Transactional
-  public void deleteKeyword(String keyword) {
-    if (!keywordRepository.existsByKeyword(keyword)) {
-      log.error("삭제 요청한 키워드를 찾을 수 없음: {}", keyword);
-      throw new CustomException(ErrorCode.KEYWORD_NOT_FOUND);
-    }
-
-    keywordRepository.deleteKeywordByKeyword(keyword);
-    log.info("삭제된 키워드: {}", keyword);
+  public void deleteKeyword(UUID keywordId) {
+    Keyword keyword = keywordService.findKeywordById(keywordId);
+    keywordRepository.deleteById(keywordId);
+    log.info("삭제된 키워드: {}", keyword.getKoreanKeyword());
   }
 }

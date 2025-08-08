@@ -2,6 +2,7 @@ package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
     name = "관리자 키워드 API",
     description = "관리자가 키워드를 관리하는 API"
 )
-public class AdminKeywordKeywordController implements AdminKeywordControllerDocs {
+public class AdminKeywordController implements AdminKeywordControllerDocs {
 
   private final AdminKeywordService adminKeywordService;
 
@@ -44,12 +45,12 @@ public class AdminKeywordKeywordController implements AdminKeywordControllerDocs
    * 특정 키워드 삭제
    */
   @Override
-  @DeleteMapping("/{keyword}")
+  @DeleteMapping("/{keyword-id}")
   @LogMonitoringInvocation
   public ResponseEntity<Void> deleteKeyword(
       @AuthenticationPrincipal CustomOAuth2User userDetails,
-      @PathVariable String keyword) {
-    adminKeywordService.deleteKeyword(keyword);
+      @PathVariable(value = "keyword-id") UUID keywordId) {
+    adminKeywordService.deleteKeyword(keywordId);
     return ResponseEntity.ok().build();
   }
 }
