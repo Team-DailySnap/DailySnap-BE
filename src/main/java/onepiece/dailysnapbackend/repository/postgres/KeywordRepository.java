@@ -13,27 +13,21 @@ import org.springframework.data.repository.query.Param;
 
 public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
 
-  Optional<Keyword> findByCategoryAndSpecifiedDate(KeywordCategory category, LocalDate specifiedDate);
-
-  Optional<Keyword> findFirstByCategoryAndIsUsedFalse(KeywordCategory category);
-
   Optional<Keyword> findByProvidedDate(LocalDate providedDate);
 
-  long countByCategoryAndIsUsedFalse(@Param("category") String category);
+  boolean existsByKoreanKeyword(String koreanKeyword);
 
-  void deleteKeywordByKeyword(String keyword);
-
-  Optional<Keyword> findKeywordByKeywordId(UUID keywordId);
-
-  boolean existsByKeyword(String keyword);
+  // 특정 카테고리에서 가장 마지막에 저장된 providedDate 를 조회
+  @Query("SELECT MAX(k.providedDate) FROM Keyword k WHERE k.keywordCategory = :category")
+  LocalDate findMaxProvidedDateByCategory(@Param("category") KeywordCategory category);
 
   @Query(value = """
-    SELECT k.* FROM keyword k 
-    WHERE (:keyword = '' OR k.keyword ILIKE CONCAT('%', TRIM(:keyword), '%')) 
-      AND (:category = '' OR k.category = :category) 
-      AND (:providedDate = '' OR k.provided_date = :proviedDate)
-      AND (:isUsed IS NULL OR k.is_used = CAST(:isUsed AS BOOLEAN))
-    """, nativeQuery = true)
+      SELECT k.* FROM keyword k 
+      WHERE (:keyword = '' OR k.keyword ILIKE CONCAT('%', TRIM(:keyword), '%')) 
+        AND (:category = '' OR k.category = :category) 
+        AND (:providedDate = '' OR k.provided_date = :proviedDate)
+        AND (:isUsed IS NULL OR k.is_used = CAST(:isUsed AS BOOLEAN))
+      """, nativeQuery = true)
   Page<Keyword> filteredKeyword(
       String keyword,
       String category,

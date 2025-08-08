@@ -17,7 +17,7 @@ public class SecurityUrls {
       "/login", // 로그인
       "/api/auth/reissue", // 액세스 토큰 재발급
       "/",
-
+      "/mock/**",
 
       // Swagger
       "/docs/**", // Swagger UI
@@ -29,7 +29,6 @@ public class SecurityUrls {
    * 관리자 권한이 필요한 URL 패턴 목록
    */
   public static final List<String> ADMIN_PATHS = Arrays.asList(
-
 
   );
 

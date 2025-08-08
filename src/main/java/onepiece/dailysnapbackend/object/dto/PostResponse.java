@@ -1,25 +1,39 @@
 package onepiece.dailysnapbackend.object.dto;
 
-import java.util.List;
-import lombok.AllArgsConstructor;
+import java.time.LocalDate;
+import java.util.UUID;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import onepiece.dailysnapbackend.object.postgres.Image;
+import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 import onepiece.dailysnapbackend.object.postgres.Keyword;
+import onepiece.dailysnapbackend.object.postgres.Member;
+import onepiece.dailysnapbackend.object.postgres.Post;
 
-@Getter
-@Setter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class PostResponse {
+public record PostResponse(
+    UUID postId,
+    String nickname,
+    String profileImageUrl,
+    String koreanKeyword,
+    String englishKeyword,
+    KeywordCategory keywordCategory,
+    LocalDate providedDate,
+    String imageUrl,
+    String description,
+    int likeCount
+) {
 
-  private Keyword keyword;
-  private List<Image> images;
-  private String content;
-  private Integer viewCount;
-  private Integer likeCount;
-  private String location;
+  public static PostResponse from(Post post, Member member, Keyword keyword) {
+    return PostResponse.builder()
+        .postId(post.getPostId())
+        .nickname(member.getNickname())
+        .profileImageUrl(member.getProfileImageUrl())
+        .koreanKeyword(keyword.getKoreanKeyword())
+        .englishKeyword(keyword.getEnglishKeyword())
+        .keywordCategory(keyword.getKeywordCategory())
+        .providedDate(keyword.getProvidedDate())
+        .imageUrl(post.getImageUrl())
+        .description(post.getDescription())
+        .likeCount(post.getLikeCount())
+        .build();
+  }
 }

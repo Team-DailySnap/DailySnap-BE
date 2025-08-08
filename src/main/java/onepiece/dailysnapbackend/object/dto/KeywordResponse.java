@@ -1,22 +1,31 @@
 package onepiece.dailysnapbackend.object.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDate;
-import lombok.AllArgsConstructor;
+import java.util.UUID;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import onepiece.dailysnapbackend.object.constants.KeywordCategory;
+import onepiece.dailysnapbackend.object.postgres.Keyword;
 
-@Getter
-@Setter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class KeywordResponse {
+public record KeywordResponse(
+    UUID keywordId,
+    String koreanKeyword,
+    String englishKeyword,
+    KeywordCategory keywordCategory,
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    LocalDate providedDate,
+    boolean used
+) {
 
-  private String keyword;
-  private KeywordCategory category;
-  private LocalDate specifiedDate;
-  private LocalDate providedDate;
+  public static KeywordResponse of(Keyword keyword) {
+    return new KeywordResponse(
+        keyword.getKeywordId(),
+        keyword.getKoreanKeyword(),
+        keyword.getEnglishKeyword(),
+        keyword.getKeywordCategory(),
+        keyword.getProvidedDate(),
+        keyword.isUsed()
+    );
+  }
 }

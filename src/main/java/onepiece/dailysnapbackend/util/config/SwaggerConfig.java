@@ -17,8 +17,8 @@ import org.springframework.context.annotation.Configuration;
     info = @Info(
         title = "\uD83D\uDCF7DailySnap",
         description = """
-                        ### 데일리스냅
-                        #### [Github](https://github.com/Team-0nePiece/DailySnap-BE)""",
+            ### 데일리스냅
+            #### [Github](https://github.com/Team-0nePiece/DailySnap-BE)""",
         version = "1.0v"
     ),
     servers = {

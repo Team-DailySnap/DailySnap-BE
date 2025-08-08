@@ -1,10 +1,9 @@
 package onepiece.dailysnapbackend.util.exception;
 
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.util.Map;
 
 /**
  * 예시 응답값
@@ -16,6 +15,7 @@ import java.util.Map;
 @Builder
 @AllArgsConstructor
 public class ValidErrorResponse {
+
   private final String errorCode;
   private final String errorMessage;
   private final Map<String, String> validation;

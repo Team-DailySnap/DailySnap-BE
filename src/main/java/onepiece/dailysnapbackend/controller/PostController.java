@@ -6,12 +6,11 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
-import onepiece.dailysnapbackend.object.dto.PostFilteredResponse;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
 import onepiece.dailysnapbackend.object.dto.PostResponse;
-import onepiece.dailysnapbackend.object.postgres.Member;
 import onepiece.dailysnapbackend.service.PostService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,29 +34,29 @@ public class PostController implements PostControllerDocs {
   private final PostService postService;
 
   @Override
-  @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @LogMonitoringInvocation
-  public ResponseEntity<PostResponse> uploadPost(
-      @AuthenticationPrincipal CustomOAuth2User userDetails,
+  public ResponseEntity<Void> uploadPost(
+      @AuthenticationPrincipal CustomOAuth2User customOAuth2User,
       @Valid @ModelAttribute PostRequest request) {
-    Member member = userDetails.getMember();
-    return ResponseEntity.ok(postService.uploadPost(request, member));
+    postService.uploadPost(customOAuth2User.getMember(), request);
+    return ResponseEntity.ok().build();
   }
 
   @Override
-  @GetMapping
+  @GetMapping("/{post-id}")
   @LogMonitoringInvocation
-  public ResponseEntity<Page<PostFilteredResponse>> filteredPosts(
+  public ResponseEntity<PostResponse> getPost(
       @AuthenticationPrincipal CustomOAuth2User userDetails,
-      @Valid @ModelAttribute PostFilteredRequest request) {
-    return ResponseEntity.ok(postService.getFilteredPosts(request));
+      @PathVariable(name = "post-id") UUID postId) {
+    return ResponseEntity.ok(postService.getPost(userDetails.getMember(), postId));
   }
 
-  @Override
-  @GetMapping("/detail/{postId}")
+  @GetMapping("")
   @LogMonitoringInvocation
-  public ResponseEntity<PostResponse> detailPost(
-      @PathVariable UUID postId) {
-    return ResponseEntity.ok(postService.getPostDetails(postId));
+  public ResponseEntity<Page<PostResponse>> filteredPost(
+      @ParameterObject PostFilteredRequest request
+  ) {
+    return ResponseEntity.ok(postService.filteredPost(request));
   }
 }

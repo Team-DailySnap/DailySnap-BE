@@ -1,34 +1,33 @@
 package onepiece.dailysnapbackend.util.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
 
 @Configuration
+@RequiredArgsConstructor
+@EnableConfigurationProperties(S3Properties.class)
 public class S3Config {
 
-  @Value("${cloud.aws.credentials.access-key}")
-  private String accessKey;
-
-  @Value("${cloud.aws.credentials.secret-key}")
-  private String secretKey;
-
-  @Value("${cloud.aws.region.static}")
-  private String region;
+  private final S3Properties properties;
 
   @Bean
-  public S3Client s3Client() {
-    return S3Client.builder()
-        .region(Region.of(region))
-        .credentialsProvider(
-            StaticCredentialsProvider.create(
-                AwsBasicCredentials.create(accessKey, secretKey)
-            )
-        )
+  public AmazonS3 amazonS3() {
+    AWSCredentials credentials = new BasicAWSCredentials(
+        properties.credentials().accessKey(),
+        properties.credentials().secretKey()
+    );
+
+    return AmazonS3ClientBuilder
+        .standard()
+        .withCredentials(new AWSStaticCredentialsProvider(credentials))
+        .withRegion(properties.region().staticRegion())
         .build();
   }
 }

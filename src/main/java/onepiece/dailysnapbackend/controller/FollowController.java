@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
     name = "팔로우 API",
     description = "사용자 팔로우 관련 API 제공"
 )
-public class FollowController implements FollowControllerDocs{
+public class FollowController implements FollowControllerDocs {
 
   private final FollowService followService;
 

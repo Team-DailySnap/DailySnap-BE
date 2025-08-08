@@ -3,68 +3,40 @@ package onepiece.dailysnapbackend.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.experimental.UtilityClass;
 import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
 
-import java.util.Map;
-
+@UtilityClass
 public class OpenAIUtil {
 
-  private static final Map<KeywordCategory, String> PROMPTS = Map.of(
-      KeywordCategory.SPRING, """
-            봄과 관련된 사진 촬영 키워드 100개를 추천해줘.
-            JSON 배열 형식으로 반환하고, 반드시 한 단어로 구성해야 해.
-            예: ["벚꽃", "봄", "피크닉"]
-            """,
-      KeywordCategory.SUMMER, """
-            여름과 관련된 사진 촬영 키워드 100개를 추천해줘.
-            JSON 배열 형식으로 반환하고, 반드시 한 단어로 구성해야 해.
-            예: ["해변", "태양", "수영"]
-            """,
-      KeywordCategory.AUTUMN, """
-            가을과 관련된 사진 촬영 키워드 100개를 추천해줘.
-            JSON 배열 형식으로 반환하고, 반드시 한 단어로 구성해야 해.
-            예: ["단풍", "낙엽", "캠핑"]
-            """,
-      KeywordCategory.WINTER, """
-            겨울과 관련된 사진 촬영 키워드 100개를 추천해줘.
-            JSON 배열 형식으로 반환하고, 반드시 한 단어로 구성해야 해.
-            예: ["눈", "크리스마스", "코트"]
-            """,
-      KeywordCategory.TRAVEL, """
-            여행지에서 사진을 찍기 좋은 키워드 100개를 추천해줘.
-            JSON 배열 형식으로 반환하고, 반드시 한 단어로 구성해야 해.
-            예: ["랜드마크", "야경", "자연"]
-            """,
-      KeywordCategory.DAILY, """
-            일상에서 찍을 수 있는 사진 촬영 키워드 100개를 추천해줘.
-            JSON 배열 형식으로 반환하고, 반드시 한 단어로 구성해야 해.
-            예: ["커피", "독서", "거리"]
-            """,
-      KeywordCategory.ABSTRACT, """
-            추상적인 사진 촬영 키워드 100개를 추천해줘.
-            JSON 배열 형식으로 반환하고, 반드시 한 단어로 구성해야 해.
-            예: ["패턴", "반사", "그림자"]
-            """,
-      KeywordCategory.RANDOM, """
-            무작위로 사진을 찍기 좋은 키워드 100개를 추천해줘.
-            JSON 배열 형식으로 반환하고, 반드시 한 단어로 구성해야 해.
-            예: ["고요", "역동", "감성"]
-            """
-  );
-
   /**
-   * KeywordCategory에 맞는 프롬프트 반환
+   * 주어진 카테고리에 맞춰, 한국어 키워드 & 영어 번역 키워드 쌍을
+   * JSON 배열(객체 요소)로 반환해 달라는 프롬프트를 생성합니다.
    */
-  public static String getPrompt(KeywordCategory category) {
-    return PROMPTS.getOrDefault(category, "무작위 키워드를 추천해줘. JSON 배열 형식으로 반환해야 해.");
+  public String getPrompt(KeywordCategory category) {
+    return String.format("""
+        '%s' 카테고리에 해당하는 사진 촬영 키워드 100개를 추천하고,
+        각각의 한글 키워드에 대응하는 영어 번역을 함께 제공합니다.
+        결과를 JSON 배열 형식으로 반환해주세요.
+        각 요소는 객체이며, "koreanKeyword"와 "englishKeyword" 필드를 가집니다.
+        해당 키워드에 맞는 사진을 업로드하는 어플리케이션이므로, 키워드 선택이 매우 중요합니다.
+        사진을 업로드 하기 적합한 키워드 위주로 출력해주세요.
+        한국어 단어를 먼저 출력하며, 이후 해당 한국어 단어에 맞는 영어 단어를 번역하여 출력합니다.
+        예:
+        [
+          {"koreanKeyword":"벚꽃","englishKeyword":"cherry blossom"},
+          {"koreanKeyword":"봄","englishKeyword":"spring"},
+          ...
+        ]
+        """, category);
   }
 
   /**
    * OpenAI 요청 JSON 문자열 생성
    */
-  public static String buildRequestBody(String model, String prompt, int maxTokens, ObjectMapper mapper) {
+  public String buildRequestBody(String model, String prompt, int maxTokens, ObjectMapper mapper) {
     ObjectNode requestJson = mapper.createObjectNode();
     requestJson.put("model", model);
     requestJson.put("max_tokens", maxTokens);
