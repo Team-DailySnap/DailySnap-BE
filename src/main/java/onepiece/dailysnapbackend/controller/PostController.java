@@ -9,7 +9,6 @@ import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
 import onepiece.dailysnapbackend.object.dto.PostFilteredResponse;
 import onepiece.dailysnapbackend.object.dto.PostRequest;
 import onepiece.dailysnapbackend.object.dto.PostResponse;
-import onepiece.dailysnapbackend.object.postgres.Member;
 import onepiece.dailysnapbackend.service.PostService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
 import org.springframework.data.domain.Page;
@@ -35,13 +34,13 @@ public class PostController implements PostControllerDocs {
   private final PostService postService;
 
   @Override
-  @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @LogMonitoringInvocation
-  public ResponseEntity<PostResponse> uploadPost(
+  public ResponseEntity<Void> uploadPost(
       @AuthenticationPrincipal CustomOAuth2User userDetails,
       @Valid @ModelAttribute PostRequest request) {
-    Member member = userDetails.getMember();
-    return ResponseEntity.ok(postService.uploadPost(request, member));
+    postService.uploadPost(userDetails.getMember(), request);
+    return ResponseEntity.ok().build();
   }
 
   @Override

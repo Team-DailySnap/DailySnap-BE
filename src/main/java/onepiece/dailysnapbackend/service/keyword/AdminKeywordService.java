@@ -36,7 +36,7 @@ public class AdminKeywordService {
     }
 
     // 중복 키워드 체크
-    if (keywordRepository.existsByKeyword(request.getKoreanKeyword())) {
+    if (keywordRepository.existsByKoreanKeyword(request.getKoreanKeyword())) {
       log.error("이미 존재하는 키워드: {}", request.getKoreanKeyword());
       throw new CustomException(ErrorCode.KEYWORD_ALREADY_EXISTS);
     }
@@ -44,7 +44,7 @@ public class AdminKeywordService {
     Keyword keyword = Keyword.builder()
         .koreanKeyword(request.getKoreanKeyword())
         .englishKeyword(request.getEnglishKeyword())
-        .category(KeywordCategory.ADMIN_SET)
+        .keywordCategory(KeywordCategory.ADMIN_SET)
         .providedDate(request.getSpecifiedDate())
         .used(false)
         .build();
@@ -60,7 +60,6 @@ public class AdminKeywordService {
         .used(savedKeyword.isUsed())
         .build();
   }
-
 
   /**
    *  특정 키워드 삭제 (관리자 전용)

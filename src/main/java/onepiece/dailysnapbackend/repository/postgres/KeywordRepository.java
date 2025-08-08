@@ -9,23 +9,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
 
-  Optional<Keyword> findByCategoryAndSpecifiedDate(KeywordCategory category, LocalDate specifiedDate);
+  Optional<Keyword> findByKeywordCategoryAndProvidedDate(KeywordCategory keywordCategory, LocalDate providedDate);
 
-  Optional<Keyword> findFirstByCategoryAndIsUsedFalse(KeywordCategory category);
+  Optional<Keyword> findFirstByKeywordCategoryAndUsedFalse(KeywordCategory keywordCategory);
 
   Optional<Keyword> findByProvidedDate(LocalDate providedDate);
 
-  long countByCategoryAndIsUsedFalse(@Param("category") String category);
-
-  void deleteKeywordByKeyword(String keyword);
-
   Optional<Keyword> findKeywordByKeywordId(UUID keywordId);
 
-  boolean existsByKeyword(String keyword);
+  boolean existsByKoreanKeyword(String koreanKeyword);
 
   @Query(value = """
     SELECT k.* FROM keyword k 

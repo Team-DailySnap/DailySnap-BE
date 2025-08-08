@@ -1,8 +1,6 @@
 package onepiece.dailysnapbackend.object.dto;
 
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,13 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 public class PostRequest {
 
-  @NotNull(message = "키워드를 입력하세요")
-  private UUID keywordId;
+  @NotNull
+  private MultipartFile image;
 
-  @NotNull(message = "이미지를 업로드하세요")
-  private List<MultipartFile> images;
-
-  private String content;
-
-  private String location;
+  private String description;
 }

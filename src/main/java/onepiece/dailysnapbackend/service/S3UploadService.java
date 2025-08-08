@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.object.constants.MimeType;
 import onepiece.dailysnapbackend.object.dto.FileResponse;
-import onepiece.dailysnapbackend.util.FileUtil;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;

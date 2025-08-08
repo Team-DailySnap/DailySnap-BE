@@ -111,11 +111,11 @@ public class OpenAIKeywordService {
     List<Keyword> keywordEntities = new ArrayList<>();
 
     uniqueKeywords.forEach(keyword -> {
-      if (!keywordRepository.existsByKeyword(keyword)) {
+      if (!keywordRepository.existsByKoreanKeyword(keyword)) {
         keywordEntities.add(Keyword.builder()
-            .keyword(keyword)
-            .category(category)
-            .isUsed(false)
+            .koreanKeyword(keyword)
+            .keywordCategory(category)
+            .used(false)
             .build());
       } else {
         log.error("'{}' 키워드는 이미 존재하여 저장하지 않음", keyword);

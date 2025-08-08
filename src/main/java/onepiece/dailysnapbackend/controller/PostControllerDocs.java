@@ -13,29 +13,46 @@ import org.springframework.http.ResponseEntity;
 public interface PostControllerDocs {
 
   @Operation(
-      summary = "사진 업로드",
+      summary = "게시물 업로드",
       description = """
-          
-          이 API는 인증이 필요합니다
-          
           ### 요청 파라미터
-          - **keywordId** (UUID): 키워드 id
-          - **images** (List<MultipartFile>): 이미지
-          - **content** (String): 사진 설명 (필수X)
-          - **location** (String): 위치 (필수X)
+          - `image` (file, required): 업로드할 이미지 파일 (MultipartFile)
+          - `description` (String, optional): 게시물 설명
           
-          ### 반환값
-          - **keyword** (Keyword) : 키워드
-          - **images** (List<Image>) : 이미지
-          - **content** (String): 사진 설명
-          - **viewCount** (Integer): 조회수
-          - **likeCount** (Integer): 좋아요수
-          - **location** (String) : 위치
+          ### 응답 데이터
+          - 없음 (빈 본문)
           
+          ### 사용 방법
+          1. 클라이언트에서 Authorization 헤더에 `Bearer {accessToken}`을 포함합니다.  
+          2. `Content-Type: multipart/form-data` 로 아래와 같이 폼 데이터 요청을 보냅니다:
+             ```
+             POST /api/auth
+             Content-Type: multipart/form-data
+             Authorization: Bearer eyJhbGciOiJI...
+          
+             --boundary
+             Content-Disposition: form-data; name="image"; filename="photo.jpg"
+             Content-Type: image/jpeg
+          
+             (파일 바이너리)
+             --boundary
+             Content-Disposition: form-data; name="description"
+          
+             오늘의 키워드 사진입니다.
+             --boundary--
+             ```
+          3. 서버가 이미지를 저장하고 200 OK 응답을 반환합니다.
+          
+          ### 유의 사항
+          - `image` 파일은 반드시 전송해야 합니다.  
+          - `description`은 최대 길이 제한이 없으나, 필요 시 클라이언트에서 적절히 검증해 주세요.  
+          - 파일 업로드 실패 시 4xx/5xx 에러가 발생할 수 있습니다.  
           """
   )
-  ResponseEntity<PostResponse> uploadPost
-      (CustomOAuth2User userDetails, PostRequest request);
+  ResponseEntity<Void> uploadPost(
+      CustomOAuth2User userDetails,
+      PostRequest request
+  );
 
   @Operation(
       summary = "게시글 필터링 (페이징 및 정렬 지원)",
@@ -67,21 +84,21 @@ public interface PostControllerDocs {
   @Operation(
       summary = "게시글 상세 조회",
       description = """
-        
-        이 API는 인증이 필요합니다.
-        
-        ### 요청 파라미터
-        - **postId** (Long): 좋아요를 누를 게시글 ID (필수)
-        
-        ### 반환값
-        - **keyword** (String): 게시글 키워드
-        - **images** (List<Image>): 게시글 이미지 목록
-        - **content** (String): 게시글 내용
-        - **viewCount** (int): 조회수
-        - **likeCount** (int): 좋아요 수
-        - **location** (String): 게시글 위치 정보
-        
-        """
+          
+          이 API는 인증이 필요합니다.
+          
+          ### 요청 파라미터
+          - **postId** (Long): 좋아요를 누를 게시글 ID (필수)
+          
+          ### 반환값
+          - **keyword** (String): 게시글 키워드
+          - **images** (List<Image>): 게시글 이미지 목록
+          - **content** (String): 게시글 내용
+          - **viewCount** (int): 조회수
+          - **likeCount** (int): 좋아요 수
+          - **location** (String): 게시글 위치 정보
+          
+          """
   )
   ResponseEntity<PostResponse> detailPost(UUID postId);
 }

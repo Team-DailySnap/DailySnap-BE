@@ -12,7 +12,6 @@ public interface EntityMapper {
   EntityMapper INSTANCE = Mappers.getMapper(EntityMapper.class);
 
   // Keyword 관련
-  KeywordFilterResponse toKeywordFilterResponse(Keyword keyword);
   KeywordRequest toKeywordRequest(Keyword keyword);
 
   // Member 관련

@@ -23,7 +23,7 @@ public class KeywordQueryDslRepository {
   public Page<Keyword> filteredKeyword(KeywordFilterRequest request) {
     BooleanExpression whereClause = QueryDslUtil.allOf(
         QueryDslUtil.likeIgnoreCase(KEYWORD.koreanKeyword, request.getKoreanKeyword()),
-        QueryDslUtil.eqIfNotNull(KEYWORD.category, request.getKeywordCategory()),
+        QueryDslUtil.eqIfNotNull(KEYWORD.keywordCategory, request.getKeywordCategory()),
         QueryDslUtil.eqIfNotNull(KEYWORD.providedDate, request.getProvidedDate()),
         QueryDslUtil.eqIfNotNull(KEYWORD.used, request.getUsed())
     );

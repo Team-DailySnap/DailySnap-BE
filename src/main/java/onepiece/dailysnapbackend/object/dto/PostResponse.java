@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import onepiece.dailysnapbackend.object.postgres.Image;
 import onepiece.dailysnapbackend.object.postgres.Keyword;
 
 @Getter

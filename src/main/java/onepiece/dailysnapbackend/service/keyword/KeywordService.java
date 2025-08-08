@@ -1,5 +1,6 @@
 package onepiece.dailysnapbackend.service.keyword;
 
+import java.time.LocalDate;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,7 @@ public class KeywordService {
   /**
    * 키워드 필터링 조회
    */
-  @Transactional
+  @Transactional(readOnly = true)
   public Page<KeywordResponse> filteredKeywords(KeywordFilterRequest request) {
     Page<Keyword> keywordPage = keywordQueryDslRepository.filteredKeyword(request);
     return keywordPage.map(KeywordResponse::of);
@@ -34,7 +35,15 @@ public class KeywordService {
   public Keyword findKeywordById(UUID keywordId) {
     return keywordRepository.findById(keywordId)
         .orElseThrow(() -> {
-          log.error("삭제 요청한 키워드를 찾을 수 없음: {}", keywordId);
+          log.error("요청 PK: {}에 해당하는 키워드를 찾을 수 없음", keywordId);
+          return new CustomException(ErrorCode.KEYWORD_NOT_FOUND);
+        });
+  }
+
+  public Keyword findKeywordByProvidedDate(LocalDate providedDate) {
+    return keywordRepository.findByProvidedDate(providedDate)
+        .orElseThrow(() -> {
+          log.error("날짜: {}에 해당하는 키워드를 찾을 수 없음", providedDate);
           return new CustomException(ErrorCode.KEYWORD_NOT_FOUND);
         });
   }
