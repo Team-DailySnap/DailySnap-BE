@@ -16,6 +16,5 @@ public enum KeywordCategory {
   ABSTRACT("추상"),    // 감성적인 표현
   RANDOM("랜덤");      // 기타 키워드
 
-
   private final String prompt;
 }

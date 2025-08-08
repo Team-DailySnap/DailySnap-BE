@@ -30,14 +30,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-  private final JwtUtil jwtUtil;
-  private final CustomOAuth2UserService customOAuth2UserService;
-  private final AuthenticationConfiguration authenticationConfiguration;
-  private final RedisTemplate<String, String> redisTemplate;
-  private final CustomLogoutHandler customLogoutHandler;
-  private final ObjectMapper objectMapper;
-  private final MemberService memberService;
-
   /**
    * 허용된 CORS Origin 목록
    */
@@ -52,6 +44,13 @@ public class SecurityConfig {
       "https://api.dailysnap.store", // 메인 API 서버
       "https://test.dailysnap.store" // 테스트 API 서버
   };
+  private final JwtUtil jwtUtil;
+  private final CustomOAuth2UserService customOAuth2UserService;
+  private final AuthenticationConfiguration authenticationConfiguration;
+  private final RedisTemplate<String, String> redisTemplate;
+  private final CustomLogoutHandler customLogoutHandler;
+  private final ObjectMapper objectMapper;
+  private final MemberService memberService;
 
   /**
    * Security Filter Chain 설정

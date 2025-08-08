@@ -24,8 +24,8 @@ public class Follow extends BasePostgresEntity {
 
   // 팔로우 ID
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Column(columnDefinition = "uuid DEFAULT uuid_generate_v4()", updatable = false, nullable = false)
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(updatable = false, nullable = false)
   private UUID followId;
 
   // 팔로우를 하는 회원

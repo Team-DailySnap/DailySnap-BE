@@ -1,6 +1,7 @@
 package onepiece.dailysnapbackend.service.keyword;
 
 import java.time.LocalDate;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.object.constants.KeywordCategory;
@@ -19,22 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminKeywordService {
 
   private final KeywordRepository keywordRepository;
+  private final KeywordService keywordService;
 
   /**
-   *  특정 날짜에 제공할 키워드 추가 (관리자 전용)
+   * 특정 날짜에 제공할 키워드 추가 (관리자 전용)
    */
   @Transactional
   public KeywordResponse addKeyword(KeywordRequest request) {
-    // 입력 유효성 검사
-    if (request.getKeyword() == null || request.getKeyword().trim().isEmpty()) {
-      log.error("키워드가 null이거나 빈 값: request={}", request);
-      throw new CustomException(ErrorCode.INVALID_REQUEST);
-    }
-
-    if (request.getSpecifiedDate() == null) {
-      log.error("specifiedDate가 null: request={}", request);
-      throw new CustomException(ErrorCode.INVALID_REQUEST);
-    }
 
     // specifiedDate가 오늘 이후인지 확인
     LocalDate today = LocalDate.now();
@@ -44,46 +36,38 @@ public class AdminKeywordService {
     }
 
     // 중복 키워드 체크
-    if (keywordRepository.existsByKeyword(request.getKeyword())) {
-      log.error("이미 존재하는 키워드: {}", request.getKeyword());
+    if (keywordRepository.existsByKoreanKeyword(request.getKoreanKeyword())) {
+      log.error("이미 존재하는 키워드: {}", request.getKoreanKeyword());
       throw new CustomException(ErrorCode.KEYWORD_ALREADY_EXISTS);
     }
 
-    Keyword keywordEntity = Keyword.builder()
-        .keyword(request.getKeyword())
-        .category(KeywordCategory.ADMIN_SET)
-        .specifiedDate(request.getSpecifiedDate())
-        .isUsed(false)
+    Keyword keyword = Keyword.builder()
+        .koreanKeyword(request.getKoreanKeyword())
+        .englishKeyword(request.getEnglishKeyword())
+        .keywordCategory(KeywordCategory.ADMIN_SET)
+        .providedDate(request.getSpecifiedDate())
+        .used(false)
         .build();
 
-    log.debug("저장 전 키워드 객체: keyword={}, specifiedDate={}",
-        keywordEntity.getKeyword(), keywordEntity.getSpecifiedDate());
-
-    Keyword savedKeyword = keywordRepository.save(keywordEntity);
-
-    log.info("'{}' 날짜에 제공될 키워드 '{}' 추가 완료, savedId={}",
-        savedKeyword.getSpecifiedDate(), savedKeyword.getKeywordId());
+    Keyword savedKeyword = keywordRepository.save(keyword);
 
     return KeywordResponse.builder()
-        .keyword(savedKeyword.getKeyword())
-        .category(savedKeyword.getCategory())
-        .specifiedDate(savedKeyword.getSpecifiedDate())
+        .keywordId(savedKeyword.getKeywordId())
+        .koreanKeyword(savedKeyword.getKoreanKeyword())
+        .englishKeyword(savedKeyword.getEnglishKeyword())
+        .keywordCategory(savedKeyword.getKeywordCategory())
         .providedDate(savedKeyword.getProvidedDate())
+        .used(savedKeyword.isUsed())
         .build();
   }
 
-
   /**
-   *  특정 키워드 삭제 (관리자 전용)
+   * 특정 키워드 삭제 (관리자 전용)
    */
   @Transactional
-  public void deleteKeyword(String keyword) {
-    if (!keywordRepository.existsByKeyword(keyword)) {
-      log.error("삭제 요청한 키워드를 찾을 수 없음: {}", keyword);
-      throw new CustomException(ErrorCode.KEYWORD_NOT_FOUND);
-    }
-
-    keywordRepository.deleteKeywordByKeyword(keyword);
-    log.info("삭제된 키워드: {}", keyword);
+  public void deleteKeyword(UUID keywordId) {
+    Keyword keyword = keywordService.findKeywordById(keywordId);
+    keywordRepository.deleteById(keywordId);
+    log.info("삭제된 키워드: {}", keyword.getKoreanKeyword());
   }
 }

@@ -1,13 +1,22 @@
 package onepiece.dailysnapbackend.util;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import onepiece.dailysnapbackend.util.exception.CustomException;
+import onepiece.dailysnapbackend.util.exception.ErrorCode;
 
 /**
  * 공통 메서드
  */
-@Slf4j
 public class CommonUtil {
+
+  // 모든 유니코드 글자 + 숫자 + 공백 허용
+  private static final Pattern SPECIAL_CHARS = Pattern.compile("[^\\p{L}\\p{N}\\s]");
 
   /**
    * null 문자 처리 -> str1이 null 인 경우 str2 반환
@@ -43,25 +52,111 @@ public class CommonUtil {
   }
 
   /**
-   * Entity 객체를 지정된 DTO 타입으로 변환합니다.
+   * 리스트가 null이거나 비어있는지 여부를 반환
    *
-   * @param entity   변환할 Entity 객체 (null이면 null 반환)
-   * @param dtoClass DTO 클래스 타입
-   * @param <D>      DTO 타입
-   * @param <E>      Entity 타입
-   * @return Entity의 프로퍼티를 복사한 DTO 객체
+   * @param list 검증할 list
+   * @return 리스트가 null이거나 비어있으면 true, 그 외에는 false
    */
-  public static <D, E> D convertEntityToDto(E entity, Class<D> dtoClass) {
-    if (entity == null) {
-      return null;
+  public static boolean nullOrEmpty(List<?> list) {
+    return list == null || list.isEmpty();
+  }
+
+  /**
+   * Enum 값을 String 으로 변환
+   *
+   * @param enumValue 변환한 Enum 값
+   * @return Enum의 name() 또는 빈 문자열
+   */
+  public static String enumToString(Enum<?> enumValue) {
+    return enumValue != null ? enumValue.name() : "";
+  }
+
+  /**
+   * enumClass의 값 중 value와 매칭된 상수 반환
+   *
+   * @param <E>       enum 타입
+   * @param enumClass 해당 enum 클래스
+   * @param value     문자열
+   * @return 매칭된 enum 상수
+   */
+  public static <E extends Enum<E>> E stringToEnum(Class<E> enumClass, String value) {
+    if (nvl(value, "").isEmpty()) {
+      throw new CustomException(ErrorCode.INVALID_REQUEST);
     }
-    try {
-      D dto = dtoClass.getDeclaredConstructor().newInstance();
-      BeanUtils.copyProperties(entity, dto);
-      return dto;
-    } catch (Exception e) {
-      log.error("Entity를 DTO로 변환하는 중 오류가 발생했습니다.", e);
-      throw new RuntimeException("Entity를 DTO로 변환하는 중 오류가 발생했습니다.", e);
+
+    return Arrays.stream(enumClass.getEnumConstants())
+        .filter(e -> e.name().equalsIgnoreCase(value))
+        .findFirst()
+        .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REQUEST));
+  }
+
+  /**
+   * SortField를 구현한 enumClass의 값 중 value와 매칭된 상수 반환
+   *
+   * @param <E>       enum 타입 (Enum<E>이면서 SortField 구현)
+   * @param enumClass SortField를 구현한 해당 enum 클래스
+   * @param value     문자열
+   * @return 매칭된 enum 상수
+   */
+  public static <E extends Enum<E> & SortField> E stringToSortField(Class<E> enumClass, String value) {
+    if (nvl(value, "").isEmpty()) {
+      throw new CustomException(ErrorCode.INVALID_SORT_FIELD);
     }
+
+    return Arrays.stream(enumClass.getEnumConstants())
+        .filter(e ->
+            e.name().equalsIgnoreCase(value) ||
+            e.getProperty().equals(value)
+        )
+        .findFirst()
+        .orElseThrow(() -> new CustomException(ErrorCode.INVALID_SORT_FIELD));
+  }
+
+  /**
+   * 특수문자 제거
+   * 영숫자 (a-z, A-Z, 0-9)와 공백을 제외한 모든 값을 제거합니다
+   */
+  public static String normalizeAndRemoveSpecialCharacters(String input) {
+    return normalize(input, "");
+  }
+
+  /**
+   * 특수문자 변환
+   * 영숫자 (a-z, A-Z, 0-9)와 공백을 제외한 모든 값을 원하는 값으로 변환합니다.
+   */
+  public static String normalizeAndReplaceSpecialCharacters(String input, String replacement) {
+    return normalize(input, replacement);
+  }
+
+  /**
+   * Unicode 정규화
+   * 텍스트 내 모든 특수문자 (문자(letter), 숫자(number), 공백 제외) 제거/치환
+   * 연속 공백 -> 단일 공백
+   * trim()
+   *
+   * @param input              정규화 할 문자열
+   * @param specialReplacement 특수문자를 치환할 문자열 (제거 시 "" 입력, 치환 시 원하는 문자열 입력)
+   * @return 정규화 된 문자열
+   */
+  private static String normalize(String input, String specialReplacement) {
+    return Optional.ofNullable(input)
+        .filter(s -> !s.isBlank())
+        .map(s -> Normalizer.normalize(s, Form.NFKC)) // Unicode 정규화
+        .map(s -> SPECIAL_CHARS.matcher(s).replaceAll(specialReplacement)) // 특수문자 제거/치환
+        .map(s -> s.replaceAll("\\s+", " ").trim()) // 공백 정리 & trim
+        .orElse("");
+  }
+
+  /**
+   * 여러 문자열을 하나의 텍스트로 결합
+   * null이나 빈 문자열은 제외하고 공백으로 구분
+   *
+   * @param texts 결합할 문자열
+   * @return 공백으로 구분된 하나의 문자열
+   */
+  public static String combineTexts(String... texts) {
+    return Arrays.stream(texts)
+        .filter(text -> !nvl(text, "").isEmpty())
+        .collect(Collectors.joining(" "));
   }
 }
