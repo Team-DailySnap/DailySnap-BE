@@ -1,4 +1,4 @@
-package onepiece.dailysnapbackend.controller.keyword;
+package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;

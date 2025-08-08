@@ -25,16 +25,6 @@ public class AdminKeywordService {
    */
   @Transactional
   public KeywordResponse addKeyword(KeywordRequest request) {
-    // 입력 유효성 검사
-    if (request.getKeyword() == null || request.getKeyword().trim().isEmpty()) {
-      log.error("키워드가 null이거나 빈 값: request={}", request);
-      throw new CustomException(ErrorCode.INVALID_REQUEST);
-    }
-
-    if (request.getSpecifiedDate() == null) {
-      log.error("specifiedDate가 null: request={}", request);
-      throw new CustomException(ErrorCode.INVALID_REQUEST);
-    }
 
     // specifiedDate가 오늘 이후인지 확인
     LocalDate today = LocalDate.now();
@@ -44,31 +34,28 @@ public class AdminKeywordService {
     }
 
     // 중복 키워드 체크
-    if (keywordRepository.existsByKeyword(request.getKeyword())) {
-      log.error("이미 존재하는 키워드: {}", request.getKeyword());
+    if (keywordRepository.existsByKeyword(request.getKoreanKeyword())) {
+      log.error("이미 존재하는 키워드: {}", request.getKoreanKeyword());
       throw new CustomException(ErrorCode.KEYWORD_ALREADY_EXISTS);
     }
 
-    Keyword keywordEntity = Keyword.builder()
-        .keyword(request.getKeyword())
+    Keyword keyword = Keyword.builder()
+        .koreanKeyword(request.getKoreanKeyword())
+        .englishKeyword(request.getEnglishKeyword())
         .category(KeywordCategory.ADMIN_SET)
-        .specifiedDate(request.getSpecifiedDate())
-        .isUsed(false)
+        .providedDate(request.getSpecifiedDate())
+        .used(false)
         .build();
 
-    log.debug("저장 전 키워드 객체: keyword={}, specifiedDate={}",
-        keywordEntity.getKeyword(), keywordEntity.getSpecifiedDate());
-
-    Keyword savedKeyword = keywordRepository.save(keywordEntity);
-
-    log.info("'{}' 날짜에 제공될 키워드 '{}' 추가 완료, savedId={}",
-        savedKeyword.getSpecifiedDate(), savedKeyword.getKeywordId());
+    Keyword savedKeyword = keywordRepository.save(keyword);
 
     return KeywordResponse.builder()
-        .keyword(savedKeyword.getKeyword())
-        .category(savedKeyword.getCategory())
-        .specifiedDate(savedKeyword.getSpecifiedDate())
+        .keywordId(savedKeyword.getKeywordId())
+        .koreanKeyword(savedKeyword.getKoreanKeyword())
+        .englishKeyword(savedKeyword.getEnglishKeyword())
+        .keywordCategory(savedKeyword.getCategory())
         .providedDate(savedKeyword.getProvidedDate())
+        .used(savedKeyword.isUsed())
         .build();
   }
 

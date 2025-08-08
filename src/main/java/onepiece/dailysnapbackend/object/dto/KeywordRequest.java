@@ -1,5 +1,7 @@
 package onepiece.dailysnapbackend.object.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,10 +17,16 @@ import onepiece.dailysnapbackend.object.constants.KeywordCategory;
 @AllArgsConstructor
 public class KeywordRequest {
 
-  private KeywordCategory category;  // 카테고리 필터링
+  @NotNull(message = "키워드 카테고리를 입력하세요")
+  private KeywordCategory category;
 
-  private String keyword;  // 키워드 필터링
+  @NotBlank(message = "키워드(한국어)를 입력하세요")
+  private String koreanKeyword;
 
-  private LocalDate specifiedDate;  // 특정 날짜에 제공될 키워드
+  @NotBlank(message = "키워드(영어)를 입력하세요")
+  private String englishKeyword;
+
+  @NotNull(message = "키워드를 제공할 날짜를 입력하세요")
+  private LocalDate specifiedDate;
 
 }

@@ -42,7 +42,7 @@ public class KeywordSelectionService {
     if (optionalAdminKeyword.isPresent()) {
       Keyword adminKeyword = optionalAdminKeyword.get();
       if (!adminKeyword.isUsed()) {
-        log.info("ADMIN_SET 키워드 발견: keyword={}", adminKeyword.getKeyword());
+        log.info("ADMIN_SET 키워드 발견: keyword={}", adminKeyword.getKoreanKeyword());
         markKeywordAsUsed(adminKeyword);
         return toKeywordRequest(adminKeyword);
       }
@@ -64,7 +64,7 @@ public class KeywordSelectionService {
               });
         });
 
-    log.info("선택된 키워드: keyword={}", unusedKeyword.getKeyword());
+    log.info("선택된 키워드: keyword={}", unusedKeyword.getKoreanKeyword());
     markKeywordAsUsed(unusedKeyword);
     return toKeywordRequest(unusedKeyword);
   }
@@ -75,7 +75,7 @@ public class KeywordSelectionService {
     keyword.setProvidedDate(LocalDate.now());
     keywordRepository.save(keyword);
     log.info("키워드 사용 처리 완료: keyword={}, isUsed={}, providedDate={}",
-        keyword.getKeyword(), keyword.isUsed(), keyword.getProvidedDate());
+        keyword.getKoreanKeyword(), keyword.isUsed(), keyword.getProvidedDate());
   }
 
   /**

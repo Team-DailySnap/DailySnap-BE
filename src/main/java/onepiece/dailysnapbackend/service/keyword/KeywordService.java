@@ -77,7 +77,7 @@ public class KeywordService {
     Optional<Keyword> optionalKeyword = keywordRepository.findByProvidedDate(providedDate);
     if (optionalKeyword.isPresent()) {
       Keyword existingKeyword = optionalKeyword.get();
-      log.info("providedDate={}에 키워드 존재: keyword={}", providedDate, existingKeyword.getKeyword());
+      log.info("providedDate={}에 키워드 존재: keyword={}", providedDate, existingKeyword.getKoreanKeyword());
       return new PageImpl<>(Collections.singletonList(entityMapper.toKeywordFilterResponse(existingKeyword)), pageable, 1);    }
 
     if (providedDate.isBefore(today)) {
@@ -114,11 +114,11 @@ public class KeywordService {
   public Page<KeywordFilterResponse> generateTodayKeywordPage(Pageable pageable) {
     log.info("오늘 날짜에 키워드가 없음 → 새 키워드 생성 시도");
     KeywordRequest newKeyword = keywordSelectionService.getTodayKeyword();
-    log.info("새 키워드 생성 완료: keyword={}", newKeyword.getKeyword());
+    log.info("새 키워드 생성 완료: keyword={}", newKeyword.getKoreanKeyword());
 
     boolean isUsed = true;
     Page<Keyword> page = keywordRepository.filteredKeyword(
-        newKeyword.getKeyword(),
+        newKeyword.getKoreanKeyword(),
         newKeyword.getCategory().name(),
         LocalDate.now().toString(),
         isUsed,
@@ -126,7 +126,7 @@ public class KeywordService {
     );
 
     if (page.isEmpty()) {
-      log.error("생성된 키워드 조회 실패: keyword={}", newKeyword.getKeyword());
+      log.error("생성된 키워드 조회 실패: keyword={}", newKeyword.getKoreanKeyword());
       return Page.empty(pageable);
     }
 
@@ -145,9 +145,9 @@ public class KeywordService {
     Keyword keyword = keywordRepository.findKeywordByKeywordId(UUID.fromString(keywordId))
         .orElseThrow(() -> new CustomException(ErrorCode.KEYWORD_NOT_FOUND));
 
-    log.info("오늘의 키워드: {}", keyword.getKeyword());
+    log.info("오늘의 키워드: {}", keyword.getKoreanKeyword());
     return DailyKeywordResponse.builder()
-        .keyword(keyword.getKeyword())
+        .keyword(keyword.getKoreanKeyword())
         .category(keyword.getCategory())
         .providedDate(keyword.getProvidedDate())
         .build();
@@ -159,7 +159,7 @@ public class KeywordService {
     Keyword keyword = keywordRepository.findByProvidedDate(today)
         .orElseThrow(() -> new CustomException(ErrorCode.KEYWORD_NOT_FOUND));
 
-    log.info("{} 키워드: {}", today, keyword.getKeyword());
+    log.info("{} 키워드: {}", today, keyword.getKoreanKeyword());
     return keyword.getKeywordId();
   }
 

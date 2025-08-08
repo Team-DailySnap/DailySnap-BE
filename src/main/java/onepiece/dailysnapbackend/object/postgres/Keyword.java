@@ -26,26 +26,25 @@ public class Keyword extends BasePostgresEntity{
 
   // 키워드 ID
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Column(columnDefinition = "uuid DEFAULT uuid_generate_v4()", updatable = false, nullable = false)
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(updatable = false, nullable = false)
   private UUID keywordId;
 
-  // 키워드 이름
+  // 키워드 이름 (한글)
   @Column(nullable = false, unique = true)
-  private String keyword;
+  private String koreanKeyword;
+
+  @Column(nullable = false)
+  private String englishKeyword;
 
   // 키워드 카테고리 (계절, 여행, 일상 등)
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private KeywordCategory category;
 
-  // 특정 날짜에 제공할 키워드 (ADMIN_SET에서 사용)
-  private LocalDate specifiedDate;
-
   // 제공한 키워드 날짜
   private LocalDate providedDate;
 
   // 사용 여부 (이미 제공된 키워드인지 여부)
-  @Column(nullable = false)
-  private boolean isUsed;
+  private boolean used;
 }

@@ -3,9 +3,9 @@ package onepiece.dailysnapbackend.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.KeywordRequest;
+import onepiece.dailysnapbackend.object.dto.KeywordResponse;
 import onepiece.dailysnapbackend.service.keyword.AdminKeywordService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +17,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/keyword")
-@Tag(name = "관리자 키워드 API", description = "관리자가 키워드를 관리하는 API")
-public class AdminController implements AdminControllerDocs {
+@Tag(
+    name = "관리자 키워드 API",
+    description = "관리자가 키워드를 관리하는 API"
+)
+public class AdminKeywordKeywordController implements AdminKeywordControllerDocs {
 
   private final AdminKeywordService adminKeywordService;
 
@@ -32,12 +34,10 @@ public class AdminController implements AdminControllerDocs {
   @Override
   @PostMapping
   @LogMonitoringInvocation
-  public ResponseEntity<Void> addKeyword(
+  public ResponseEntity<KeywordResponse> addKeyword(
       @AuthenticationPrincipal CustomOAuth2User userDetails,
       @Valid @RequestBody KeywordRequest request) {
-    adminKeywordService.addKeyword(request);
-    log.info("[AdminController] 키워드 추가 완료");
-    return ResponseEntity.ok().build();
+    return ResponseEntity.ok(adminKeywordService.addKeyword(request));
   }
 
   /**
