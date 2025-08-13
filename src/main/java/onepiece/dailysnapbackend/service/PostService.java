@@ -2,6 +2,8 @@ package onepiece.dailysnapbackend.service;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,7 @@ import onepiece.dailysnapbackend.object.dto.PostResponse;
 import onepiece.dailysnapbackend.object.postgres.Keyword;
 import onepiece.dailysnapbackend.object.postgres.Member;
 import onepiece.dailysnapbackend.object.postgres.Post;
+import onepiece.dailysnapbackend.repository.postgres.KeywordRepository;
 import onepiece.dailysnapbackend.repository.postgres.PostQueryDslRepository;
 import onepiece.dailysnapbackend.repository.postgres.PostRepository;
 import onepiece.dailysnapbackend.service.keyword.KeywordService;
@@ -19,6 +22,7 @@ import onepiece.dailysnapbackend.util.FileUtil;
 import onepiece.dailysnapbackend.util.exception.CustomException;
 import onepiece.dailysnapbackend.util.exception.ErrorCode;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +35,7 @@ public class PostService {
   private final KeywordService keywordService;
   private final StorageService storageService;
   private final PostQueryDslRepository postQueryDslRepository;
+  private final KeywordRepository keywordRepository;
 
   // 이미지 업로드
   @Transactional
@@ -70,5 +75,22 @@ public class PostService {
           log.error("요청 PK: {}에 해당하는 게시글을 찾을 수 없습니다", postId);
           return new CustomException(ErrorCode.POST_NOT_FOUND);
         });
+  }
+
+  @Transactional(readOnly = true)
+  public List<PostResponse> get7DaysRandomPost() {
+    List<Keyword> latest7Keywords = keywordRepository.findTop7ByUsedIsTrueOrderByProvidedDateDesc();
+    List<PostResponse> postResponses = new ArrayList<>();
+    for (Keyword keyword : latest7Keywords) {
+      List<Post> randomOne = postRepository.findRandomOneWithMemberByKeywordId(keyword.getKeywordId(), PageRequest.of(0, 1));
+      if (randomOne.isEmpty()) {
+        continue;
+      }
+      Post post = randomOne.get(0);
+      Member member = post.getMember();
+
+      postResponses.add(PostResponse.from(post, member, keyword));
+    }
+    return postResponses;
   }
 }

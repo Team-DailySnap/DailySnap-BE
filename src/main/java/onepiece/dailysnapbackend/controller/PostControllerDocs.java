@@ -1,6 +1,7 @@
 package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import java.util.List;
 import java.util.UUID;
 import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.PostFilteredRequest;
@@ -145,4 +146,36 @@ public interface PostControllerDocs {
   ResponseEntity<Page<PostResponse>> filteredPost(
       PostFilteredRequest request
   );
+
+  @Operation(
+      summary = "홈 화면 7일치 키워드별 랜덤 포스트 조회",
+      description = """
+          ### 요청 파라미터
+          없음 — 이 API는 현재 날짜로부터 7일치의 키워드를 자동으로 조회하고, 각 키워드별로 랜덤한 포스트를 1개씩 반환합니다.
+          
+          ### 응답 데이터
+          - `postId` (UUID): 포스트 고유 식별자
+          - `nickname` (String): 작성자 닉네임
+          - `profileImageUrl` (String): 작성자 프로필 이미지 URL
+          - `koreanKeyword` (String): 키워드(한글)
+          - `englishKeyword` (String): 키워드(영문)
+          - `keywordCategory` (KeywordCategory): 키워드 카테고리
+          - `providedDate` (LocalDate): 키워드 제공일
+          - `imageUrl` (String): 포스트 이미지 URL
+          - `description` (String): 포스트 설명
+          - `likeCount` (int): 포스트 좋아요 수
+          
+          ### 사용 방법
+          1. 클라이언트는 `GET /api/post/home` 요청을 보냅니다.
+          2. 서버는 최근 7일 동안 사용된 키워드를 조회합니다.
+          3. 각 키워드에 대해 랜덤하게 1개의 포스트를 선택하여 반환합니다.
+          4. 응답은 최대 7개의 포스트 객체로 구성됩니다. (각 키워드별 1개)
+          
+          ### 유의 사항
+          - 7일 이내에 사용된 키워드가 없거나, 특정 키워드에 해당하는 포스트가 없는 경우 해당 키워드는 응답에서 제외됩니다.
+          - 반환되는 포스트는 매 요청 시 랜덤하게 선택되므로, 같은 키워드라도 매번 다른 포스트가 반환될 수 있습니다.
+          - 정렬 순서는 키워드의 제공일(`providedDate`) 기준으로 최신순입니다.
+          """
+  )
+  ResponseEntity<List<PostResponse>> get7DaysRandomPost();
 }
