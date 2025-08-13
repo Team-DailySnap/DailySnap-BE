@@ -25,14 +25,14 @@ public class MockController implements MockControllerDocs {
   private final MockService mockService;
 
   @Override
-  @PostMapping(value = "/member", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PostMapping(value = "/login", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @LogMonitoringInvocation
   public ResponseEntity<LoginResponse> createMockMember(
       @ModelAttribute MockLoginRequest request) {
     return ResponseEntity.ok(mockService.mockLogin(request));
   }
 
-  @PostMapping("/member/random")
+  @PostMapping("/member")
   @LogMonitoringInvocation
   public ResponseEntity<Void> createMockMemberRandom(int count) {
     mockService.createMockMember(count);
