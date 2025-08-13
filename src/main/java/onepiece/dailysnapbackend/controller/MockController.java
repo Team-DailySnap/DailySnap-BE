@@ -6,9 +6,10 @@ import onepiece.dailysnapbackend.object.dto.LoginResponse;
 import onepiece.dailysnapbackend.object.dto.MockLoginRequest;
 import onepiece.dailysnapbackend.service.MockService;
 import onepiece.dailysnapbackend.util.log.LogMonitoringInvocation;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,10 +25,10 @@ public class MockController implements MockControllerDocs {
   private final MockService mockService;
 
   @Override
-  @PostMapping("/member")
+  @PostMapping(value = "/member", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @LogMonitoringInvocation
   public ResponseEntity<LoginResponse> createMockMember(
-      @RequestBody MockLoginRequest request) {
+      @ModelAttribute MockLoginRequest request) {
     return ResponseEntity.ok(mockService.mockLogin(request));
   }
 

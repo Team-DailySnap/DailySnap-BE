@@ -39,10 +39,10 @@ public class MockService {
   public LoginResponse mockLogin(MockLoginRequest request) {
     String username = request.getUsername().isBlank()
         ? enFaker.internet().emailAddress() + koFaker.random().nextInt(1000)
-        : request.getUsername();
+        : request.getUsername() + koFaker.random().nextInt(1000);
     String nickname = request.getNickname().isBlank()
         ? koFaker.name().name() + koFaker.random().nextInt(1000)
-        : request.getNickname();
+        : request.getNickname() + koFaker.random().nextInt(1000);
     Role role = request.getRole() == null ?
         Role.ROLE_USER : request.getRole();
 
