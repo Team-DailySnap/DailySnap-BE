@@ -1,6 +1,7 @@
 package onepiece.dailysnapbackend.repository.postgres;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import onepiece.dailysnapbackend.object.constants.KeywordCategory;
@@ -35,4 +36,5 @@ public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
       Boolean isUsed,
       Pageable pageable);
 
+  List<Keyword> findTop7ByUsedIsTrueOrderByProvidedDateDesc();
 }

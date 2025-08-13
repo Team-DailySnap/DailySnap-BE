@@ -2,6 +2,7 @@ package onepiece.dailysnapbackend.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
@@ -58,5 +59,12 @@ public class PostController implements PostControllerDocs {
       @ParameterObject PostFilteredRequest request
   ) {
     return ResponseEntity.ok(postService.filteredPost(request));
+  }
+
+  @Override
+  @GetMapping("/home")
+  @LogMonitoringInvocation
+  public ResponseEntity<List<PostResponse>> get7DaysRandomPost() {
+    return ResponseEntity.ok(postService.get7DaysRandomPost());
   }
 }
