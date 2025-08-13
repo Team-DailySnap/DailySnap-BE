@@ -20,5 +20,5 @@ public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
   @Query("SELECT MAX(k.providedDate) FROM Keyword k WHERE k.keywordCategory = :category")
   LocalDate findMaxProvidedDateByCategory(@Param("category") KeywordCategory category);
 
-  List<Keyword> findTop7ByProvidedDateAfterOrderByProvidedDate(LocalDate providedDate);
+  List<Keyword> findTop7ByProvidedDateBeforeOrderByProvidedDateDesc(LocalDate providedDate);
 }
