@@ -79,7 +79,7 @@ public class PostService {
 
   @Transactional(readOnly = true)
   public List<PostResponse> get7DaysRandomPost() {
-    List<Keyword> latest7Keywords = keywordRepository.findTop7ByUsedIsTrueOrderByProvidedDateDesc();
+    List<Keyword> latest7Keywords = keywordRepository.findTop7ByProvidedDateAfterOrderByProvidedDate(LocalDate.now().minusDays(1));
     List<PostResponse> postResponses = new ArrayList<>();
     for (Keyword keyword : latest7Keywords) {
       List<Post> randomOne = postRepository.findRandomOneWithMemberByKeywordId(keyword.getKeywordId(), PageRequest.of(0, 1));
