@@ -1,5 +1,7 @@
 package onepiece.dailysnapbackend.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
@@ -9,10 +11,15 @@ import onepiece.dailysnapbackend.object.constants.SocialPlatform;
 import onepiece.dailysnapbackend.object.dto.CustomOAuth2User;
 import onepiece.dailysnapbackend.object.dto.LoginResponse;
 import onepiece.dailysnapbackend.object.dto.MockLoginRequest;
+import onepiece.dailysnapbackend.object.postgres.Keyword;
 import onepiece.dailysnapbackend.object.postgres.Member;
+import onepiece.dailysnapbackend.object.postgres.Post;
+import onepiece.dailysnapbackend.repository.postgres.KeywordRepository;
 import onepiece.dailysnapbackend.repository.postgres.MemberRepository;
+import onepiece.dailysnapbackend.repository.postgres.PostRepository;
 import onepiece.dailysnapbackend.util.JwtUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -20,10 +27,15 @@ import org.springframework.stereotype.Service;
 public class MockService {
 
   private final MemberRepository memberRepository;
+  private final MockMemberFactory mockMemberFactory;
   private final Faker koFaker;
   private final Faker enFaker;
   private final JwtUtil jwtUtil;
+  private final KeywordRepository keywordRepository;
+  private final MockPostFactory mockPostFactory;
+  private final PostRepository postRepository;
 
+  @Transactional
   public LoginResponse mockLogin(MockLoginRequest request) {
     String username = request.getUsername().isBlank()
         ? enFaker.internet().emailAddress() + koFaker.random().nextInt(1000)
@@ -53,4 +65,23 @@ public class MockService {
     return new LoginResponse(accessToken, refreshToken);
   }
 
+  @Transactional
+  public void createMockMember(int count) {
+    List<Member> members = new ArrayList<>();
+    for (int i = 0; i < count; i++) {
+      members.add(mockMemberFactory.generate());
+    }
+    memberRepository.saveAll(members);
+  }
+
+  @Transactional
+  public void createMockPost(int count) {
+    List<Keyword> keywords = keywordRepository.findAll();
+    List<Member> members = memberRepository.findAll();
+    List<Post> posts = new ArrayList<>();
+    for (int i = 0; i < count; i++) {
+      posts.add(mockPostFactory.generate(members.get(koFaker.random().nextInt(members.size())), keywords.get(koFaker.random().nextInt(keywords.size()))));
+    }
+    postRepository.saveAll(posts);
+  }
 }

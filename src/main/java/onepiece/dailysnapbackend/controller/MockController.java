@@ -30,4 +30,18 @@ public class MockController implements MockControllerDocs {
       @RequestBody MockLoginRequest request) {
     return ResponseEntity.ok(mockService.mockLogin(request));
   }
+
+  @PostMapping("/member/random")
+  @LogMonitoringInvocation
+  public ResponseEntity<Void> createMockMemberRandom(int count) {
+    mockService.createMockMember(count);
+    return ResponseEntity.ok().build();
+  }
+
+  @PostMapping("/post")
+  @LogMonitoringInvocation
+  public ResponseEntity<Void> createMockPost(int count) {
+    mockService.createMockPost(count);
+    return ResponseEntity.ok().build();
+  }
 }
